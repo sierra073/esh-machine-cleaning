@@ -1,0 +1,415 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>preprocess_raw &mdash; Machine Cleaning 2018 Feature Preprocessing 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="Machine Cleaning 2018 Feature Preprocessing 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Machine Cleaning 2018 Feature Preprocessing
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Machine Cleaning 2018 Feature Preprocessing</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>preprocess_raw</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for preprocess_raw</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<div class="viewcode-block" id="PreprocessRaw"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw">[docs]</a><span class="k">class</span> <span class="nc">PreprocessRaw</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A raw dataset (coming from frns and frn_line_items tables) that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">drop_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;frn&#39;</span><span class="p">,</span> <span class="s1">&#39;frn_number_from_the_previous_year&#39;</span><span class="p">,</span> <span class="s1">&#39;application_number&#39;</span><span class="p">,</span> <span class="s1">&#39;ben&#39;</span><span class="p">,</span> <span class="s1">&#39;account_number&#39;</span><span class="p">,</span> <span class="s1">&#39;service_provider_number&#39;</span><span class="p">,</span><span class="s1">&#39;establishing_fcc_form470&#39;</span><span class="p">,</span> <span class="s1">&#39;user_entered_establishing_fcc_form470&#39;</span><span class="p">,</span><span class="s1">&#39;line_item&#39;</span><span class="p">,</span> 
+    <span class="s1">&#39;award_date&#39;</span><span class="p">,</span> <span class="s1">&#39;expiration_date&#39;</span><span class="p">,</span> <span class="s1">&#39;contract_expiry_date&#39;</span><span class="p">,</span> <span class="s1">&#39;service_start_date&#39;</span><span class="p">,</span><span class="s1">&#39;model&#39;</span><span class="p">,</span><span class="s1">&#39;contract_number&#39;</span><span class="p">,</span> <span class="s1">&#39;restriction_citation&#39;</span><span class="p">,</span> <span class="s1">&#39;other_manufacture&#39;</span><span class="p">,</span> 
+    <span class="s1">&#39;download_speed&#39;</span><span class="p">,</span><span class="s1">&#39;download_speed_units&#39;</span><span class="p">,</span><span class="s1">&#39;upload_speed&#39;</span><span class="p">,</span><span class="s1">&#39;upload_speed_units&#39;</span><span class="p">,</span><span class="s1">&#39;burstable_speed&#39;</span><span class="p">,</span><span class="s1">&#39;burstable_speed_units&#39;</span><span class="p">,</span><span class="s1">&#39;purpose&#39;</span><span class="p">,</span> <span class="s1">&#39;source_of_matching_funds&#39;</span><span class="p">]</span>
+
+    <span class="n">yn_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;connection_supports_school_library_or_nif&#39;</span><span class="p">,</span> <span class="s1">&#39;includes_voluntary_extensions&#39;</span><span class="p">,</span> <span class="s1">&#39;basic_firewall_protection&#39;</span><span class="p">,</span> <span class="s1">&#39;based_on_state_master_contract&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;based_on_multiple_award_schedule&#39;</span><span class="p">,</span> <span class="s1">&#39;pricing_confidentiality&#39;</span><span class="p">,</span> <span class="s1">&#39;lease_or_non_purchase_agreement&#39;</span><span class="p">,</span> <span class="s1">&#39;connected_directly_to_school_library_or_nif&#39;</span><span class="p">,</span><span class="s1">&#39;was_fcc_form470_posted&#39;</span><span class="p">,</span><span class="s1">&#39;frn_previous_year_exists&#39;</span><span class="p">]</span>
+
+    <span class="n">cat_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;pricing_confidentiality&#39;</span><span class="p">,</span> <span class="s1">&#39;based_on_state_master_contract&#39;</span><span class="p">,</span> <span class="s1">&#39;lease_or_non_purchase_agreement&#39;</span><span class="p">,</span> <span class="s1">&#39;based_on_multiple_award_schedule&#39;</span><span class="p">,</span>  
+    <span class="s1">&#39;was_fcc_form470_posted&#39;</span><span class="p">,</span> <span class="s1">&#39;connection_supports_school_library_or_nif&#39;</span> <span class="p">,</span><span class="s1">&#39;connected_directly_to_school_library_or_nif&#39;</span><span class="p">,</span><span class="s1">&#39;basic_firewall_protection&#39;</span><span class="p">,</span><span class="s1">&#39;includes_voluntary_extensions&#39;</span><span class="p">,</span><span class="s1">&#39;pricing_confidentiality_type&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;fiber_type&#39;</span><span class="p">,</span><span class="s1">&#39;connection_used_by&#39;</span><span class="p">,</span><span class="s1">&#39;fiber_sub_type&#39;</span><span class="p">,</span><span class="s1">&#39;purpose&#39;</span><span class="p">,</span><span class="s1">&#39;unit&#39;</span><span class="p">,</span><span class="s1">&#39;function&#39;</span><span class="p">,</span><span class="s1">&#39;postal_cd&#39;</span><span class="p">,</span><span class="s1">&#39;type_of_product&#39;</span><span class="p">,</span><span class="s1">&#39;service_provider_name&#39;</span><span class="p">,</span><span class="s1">&#39;billed_entity_name&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;funding_request_nickname&#39;</span><span class="p">,</span><span class="s1">&#39;narrative&#39;</span><span class="p">,</span><span class="s1">&#39;contact_email&#39;</span><span class="p">,</span><span class="s1">&#39;frn_previous_year_exists&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
+
+<div class="viewcode-block" id="PreprocessRaw.getdata"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.getdata">[docs]</a>    <span class="k">def</span> <span class="nf">getdata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
+
+<div class="viewcode-block" id="PreprocessRaw.remove_column_nulls"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.remove_column_nulls">[docs]</a>    <span class="k">def</span> <span class="nf">remove_column_nulls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Removes columns that are all null.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.duplicate_columns"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.duplicate_columns">[docs]</a>    <span class="k">def</span> <span class="nf">duplicate_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Obtains the names of the columns that have identical values to any other columns.&quot;&quot;&quot;</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">dtypes</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span>
+        <span class="n">dups</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">dcols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">)</span>
+
+            <span class="n">vs</span> <span class="o">=</span> <span class="n">dcols</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="n">ks</span> <span class="o">=</span> <span class="n">dcols</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="n">lvs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vs</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lvs</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">lvs</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">vs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">vs</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span> 
+                        <span class="n">dups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ks</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                        <span class="k">break</span>
+</div>
+        <span class="k">return</span> <span class="n">dups</span>  
+
+<div class="viewcode-block" id="PreprocessRaw.remove_column_duplicates"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.remove_column_duplicates">[docs]</a>    <span class="k">def</span> <span class="nf">remove_column_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Removes the columns that have duplicates (as determined by *duplicate_columns()*).</span>
+<span class="sd">        Also removes columns that have the same name as other columns in case they aren&#39;t caught by the above.&quot;&quot;&quot;</span>
+        <span class="n">dups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">duplicate_columns</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">dups</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">duplicated</span><span class="p">()]</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<div class="viewcode-block" id="PreprocessRaw.summary"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Takes a DataFrame and creates a summary. Does different things if object or numeric features. </span>
+<span class="sd">        Reports the data type, some stats, the number of unique values, and null count/percent for each column.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">summary_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="nb">print</span> <span class="s1">&#39;SHAPE&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>    
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;O&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">most_frequent</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">vals</span><span class="p">[</span><span class="n">vals</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">uniq</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="n">most_frequent</span> <span class="o">=</span> <span class="s1">&#39;NA&#39;</span>
+                    <span class="n">uniq</span> <span class="o">=</span> <span class="s1">&#39;NA&#39;</span>
+                <span class="n">summary_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">,</span>
+                                     <span class="n">vals</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> 
+                                     <span class="s1">&#39;NA&#39;</span><span class="p">,</span> 
+                                     <span class="s1">&#39;NA&#39;</span><span class="p">,</span> 
+                                     <span class="n">most_frequent</span><span class="p">,</span>
+                                     <span class="n">uniq</span><span class="p">,</span> 
+                                     <span class="nb">sum</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">vals</span><span class="p">)),</span>
+                                     <span class="nb">sum</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">))])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">summary_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i</span><span class="p">,</span>
+                                     <span class="n">vals</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> 
+                                     <span class="n">vals</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> 
+                                     <span class="n">vals</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> 
+                                     <span class="n">vals</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                                     <span class="n">vals</span><span class="o">.</span><span class="n">nunique</span><span class="p">(),</span> 
+                                     <span class="nb">sum</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">vals</span><span class="p">)),</span>
+                                     <span class="nb">sum</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">vals</span><span class="p">))</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">))])</span></div>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">summary_list</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;col&#39;</span><span class="p">,</span><span class="s1">&#39;datatype&#39;</span><span class="p">,</span><span class="s1">&#39;min&#39;</span><span class="p">,</span><span class="s1">&#39;max&#39;</span><span class="p">,</span><span class="s1">&#39;mean_or_most_common&#39;</span><span class="p">,</span><span class="s1">&#39;num_uniq&#39;</span><span class="p">,</span><span class="s1">&#39;null_count&#39;</span><span class="p">,</span><span class="s1">&#39;null_pct&#39;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="PreprocessRaw.remove_no_var"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.remove_no_var">[docs]</a>    <span class="k">def</span> <span class="nf">remove_no_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Removes columns with 0 variance.&quot;&quot;&quot;</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">nunique</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="o">.</span><span class="n">nunique</span><span class="p">)</span>
+        <span class="n">cols_to_drop</span> <span class="o">=</span> <span class="n">nunique</span><span class="p">[</span><span class="n">nunique</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">cols_to_drop</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.remove_drops_raw"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.remove_drops_raw">[docs]</a>    <span class="k">def</span> <span class="nf">remove_drops_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Removes the columns *drop_cols* we specified to drop for the class&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">drop_cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.rename_col"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.rename_col">[docs]</a>    <span class="k">def</span> <span class="nf">rename_col</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">col</span><span class="p">,</span><span class="n">new_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rename a column *col* of the dataframe a new name according to *new_name*&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="n">new_name</span><span class="p">})</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.convert_floats"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.convert_floats">[docs]</a>    <span class="k">def</span> <span class="nf">convert_floats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cat_cols</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;General function: convert columns that should be decimal numbers (if not already) to floats. </span>
+<span class="sd">        Since there are more float variables than categorical/string variables, it takes in a list *cat_cols* of those to exclude.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span> 
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cat_cols</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">print</span> <span class="n">col</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                    <span class="nb">print</span> <span class="s2">&quot;ERROR&quot;</span>
+                    <span class="k">continue</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.convert_floats_raw"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.convert_floats_raw">[docs]</a>    <span class="k">def</span> <span class="nf">convert_floats_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert the PreprocessRaw variables to floats that are not in the class categorical variables.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">convert_floats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">cat_cols</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.convert_yn"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.convert_yn">[docs]</a>    <span class="k">def</span> <span class="nf">convert_yn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">col</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;General function: convert a column *col* of the dataframe that contains &#39;Yes&#39; or &#39;No&#39; strings to boolean.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">var_corrected</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;Yes&#39;</span><span class="p">:</span>
+                <span class="n">var_corrected</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">row</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">==</span><span class="s1">&#39;No&#39;</span><span class="p">:</span>
+                <span class="n">var_corrected</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">var_corrected</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">var_corrected</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">col</span> <span class="o">+</span> <span class="s2">&quot; converted&quot;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.convert_yn_raw"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.convert_yn_raw">[docs]</a>    <span class="k">def</span> <span class="nf">convert_yn_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert the PreprocessRaw class &#39;Yes&#39;/&#39;No&#39; variables to boolean.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">yn_cols</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">convert_yn</span><span class="p">(</span><span class="n">col</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.convert_dummies"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.convert_dummies">[docs]</a>    <span class="k">def</span> <span class="nf">convert_dummies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cols</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;General function: convert multiple categorical columns specified in *cols* to dummy variables if their cardinality is &lt;= 8 or the column is &#39;postal_cd&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dummy_cols</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">:</span>
+            <span class="c1">#convert column to lowercase</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">!=</span><span class="nb">str</span> <span class="k">else</span> <span class="n">x</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+            <span class="c1">#replace spaces and slashes with underscore</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1">#check cardinality</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">col</span><span class="p">)[</span><span class="s1">&#39;total_pre_discount_charges&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">8</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">col</span> <span class="o">==</span> <span class="s1">&#39;postal_cd&#39;</span><span class="p">):</span>
+                <span class="n">dummy_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+        <span class="n">dummy_cols_prefixed</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">dummy_cols</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">dummy_cols</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">dummy_cols</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">dummy_cols_prefixed</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.convert_dummies_raw"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.convert_dummies_raw">[docs]</a>    <span class="k">def</span> <span class="nf">convert_dummies_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert the PreprocessRaw class categorical variables to dummies&quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">yn_cols</span><span class="p">)</span>
+        <span class="n">cat_cols_no_bool</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">cat_cols</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">s</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">convert_dummies</span><span class="p">(</span><span class="n">cat_cols_no_bool</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.remove_mostly_nulls"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.remove_mostly_nulls">[docs]</a>    <span class="k">def</span> <span class="nf">remove_mostly_nulls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove columns of the dataset that are &gt;= 74% null.&quot;&quot;&quot;</span>
+        <span class="n">s1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+        <span class="n">s1</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;col&#39;</span><span class="p">)</span>
+        <span class="n">mostly_not_null_cols</span> <span class="o">=</span> <span class="n">s1</span><span class="p">[</span><span class="n">s1</span><span class="o">.</span><span class="n">null_pct</span> <span class="o">&lt;</span> <span class="o">.</span><span class="mi">74</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">mostly_not_null_cols</span><span class="o">.</span><span class="n">col</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PreprocessRaw.applyall_raw"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw.applyall_raw">[docs]</a>    <span class="k">def</span> <span class="nf">applyall_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Apply all functions to a PreprocessRaw dataset to preprocess the raw features.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_column_nulls</span><span class="p">()</span><span class="o">.</span><span class="n">remove_column_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">remove_no_var</span><span class="p">()</span><span class="o">.</span><span class="n">remove_drops_raw</span><span class="p">()</span><span class="o">.</span><span class="n">rename_col</span><span class="p">(</span><span class="s1">&#39;purpose_adj&#39;</span><span class="p">,</span><span class="s1">&#39;purpose&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">convert_floats_raw</span><span class="p">()</span><span class="o">.</span><span class="n">convert_yn_raw</span><span class="p">()</span><span class="o">.</span><span class="n">convert_dummies_raw</span><span class="p">()</span><span class="o">.</span><span class="n">remove_mostly_nulls</span><span class="p">()</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<div class="viewcode-block" id="final_columns_pickle"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.final_columns_pickle">[docs]</a><span class="k">def</span> <span class="nf">final_columns_pickle</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pickle the final columns of your dataset and export. Only meant to be used once all preprocessing/EDA is finalized before modeling.</span>
+<span class="sd">    Takes in a dataframe and the string *filepath* as the file path of the export (no extension).&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span> <span class="o">+</span> <span class="s1">&#39;.pkl&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span></div>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sierra Costanza, Jamie Barnes, Adrianna Boghozian.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
