@@ -19,3 +19,5 @@ Below are some examples for how to use this module in isolation, but please see 
     cleanraw.convert_dummies(['var_cat1','var_cat2'])
 
     cleanraw.applyall_raw()
+
+    final_data = cleanraw.getdata()
