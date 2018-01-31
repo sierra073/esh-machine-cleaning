@@ -1,6 +1,5 @@
 pandas
 numpy
-collections
 pickle
 psycopg2
 sklearn
