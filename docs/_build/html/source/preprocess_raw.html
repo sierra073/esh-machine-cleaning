@@ -160,10 +160,16 @@
 <em class="property">class </em><code class="descclassname">preprocess_raw.</code><code class="descname">PreprocessRaw</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A raw dataset (coming from frns and frn_line_items tables) that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.</p>
-<dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.applyall_raw">
-<code class="descname">applyall_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.applyall_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.applyall_raw" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply all functions to a PreprocessRaw dataset to preprocess the raw features.</p>
+<dl class="attribute">
+<dt id="preprocess_raw.PreprocessRaw.drop_cols">
+<code class="descname">drop_cols</code><em class="property"> = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number', 'establishing_fcc_form470', 'user_entered_establishing_fcc_form470', 'line_item', 'award_date', 'expiration_date', 'contract_expiry_date', 'service_start_date', 'model', 'contract_number', 'restriction_citation', 'other_manufacture', 'download_speed', 'download_speed_units', 'upload_speed', 'upload_speed_units', 'burstable_speed', 'burstable_speed_units', 'purpose', 'source_of_matching_funds']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.drop_cols" title="Permalink to this definition">¶</a></dt>
+<dd><p>declare the columns that are yes/no</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="preprocess_raw.PreprocessRaw.yn_cols">
+<code class="descname">yn_cols</code><em class="property"> = ['connection_supports_school_library_or_nif', 'includes_voluntary_extensions', 'basic_firewall_protection', 'based_on_state_master_contract', 'based_on_multiple_award_schedule', 'pricing_confidentiality', 'lease_or_non_purchase_agreement', 'connected_directly_to_school_library_or_nif', 'was_fcc_form470_posted', 'frn_previous_year_exists']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.yn_cols" title="Permalink to this definition">¶</a></dt>
+<dd><p>declare the columns that don’t need the float conversion</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -172,15 +178,52 @@
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.convert_dummies">
-<code class="descname">convert_dummies</code><span class="sig-paren">(</span><em>cols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.convert_dummies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.convert_dummies" title="Permalink to this definition">¶</a></dt>
-<dd><p>General function: convert multiple categorical columns specified in <em>cols</em> to dummy variables if their cardinality is &lt;= 8 or the column is ‘postal_cd’.</p>
+<dt id="preprocess_raw.PreprocessRaw.getdata">
+<code class="descname">getdata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.getdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.getdata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="preprocess_raw.PreprocessRaw.remove_column_nulls">
+<code class="descname">remove_column_nulls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_column_nulls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_column_nulls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes columns that are all null.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.convert_dummies_raw">
-<code class="descname">convert_dummies_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.convert_dummies_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.convert_dummies_raw" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert the PreprocessRaw class categorical variables to dummies</p>
+<dt id="preprocess_raw.PreprocessRaw.duplicate_columns">
+<code class="descname">duplicate_columns</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.duplicate_columns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.duplicate_columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtains the names of the columns that have identical values to any other columns.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="preprocess_raw.PreprocessRaw.remove_column_duplicates">
+<code class="descname">remove_column_duplicates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_column_duplicates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_column_duplicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the columns that have duplicates (as determined by <em>duplicate_columns()</em>).
+Also removes columns that have the same name as other columns in case they aren’t caught by the above.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="preprocess_raw.PreprocessRaw.summary">
+<code class="descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a DataFrame and creates a summary. Does different things if object or numeric features.
+Reports the data type, some stats, the number of unique values, and null count/percent for each column.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="preprocess_raw.PreprocessRaw.remove_no_var">
+<code class="descname">remove_no_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_no_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_no_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes columns with 0 variance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="preprocess_raw.PreprocessRaw.remove_drops_raw">
+<code class="descname">remove_drops_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_drops_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_drops_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the columns <em>drop_cols</em> we specified to drop for the class</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="preprocess_raw.PreprocessRaw.rename_col">
+<code class="descname">rename_col</code><span class="sig-paren">(</span><em>col</em>, <em>new_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.rename_col"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.rename_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rename a column <em>col</em> of the dataframe a new name according to <em>new_name</em></p>
 </dd></dl>
 
 <dl class="method">
@@ -208,39 +251,16 @@ Since there are more float variables than categorical/string variables, it takes
 <dd><p>Convert the PreprocessRaw class ‘Yes’/’No’ variables to boolean.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="preprocess_raw.PreprocessRaw.drop_cols">
-<code class="descname">drop_cols</code><em class="property"> = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number', 'establishing_fcc_form470', 'user_entered_establishing_fcc_form470', 'line_item', 'award_date', 'expiration_date', 'contract_expiry_date', 'service_start_date', 'model', 'contract_number', 'restriction_citation', 'other_manufacture', 'download_speed', 'download_speed_units', 'upload_speed', 'upload_speed_units', 'burstable_speed', 'burstable_speed_units', 'purpose', 'source_of_matching_funds']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.drop_cols" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.duplicate_columns">
-<code class="descname">duplicate_columns</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.duplicate_columns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.duplicate_columns" title="Permalink to this definition">¶</a></dt>
-<dd><p>Obtains the names of the columns that have identical values to any other columns.</p>
+<dt id="preprocess_raw.PreprocessRaw.convert_dummies">
+<code class="descname">convert_dummies</code><span class="sig-paren">(</span><em>cols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.convert_dummies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.convert_dummies" title="Permalink to this definition">¶</a></dt>
+<dd><p>General function: convert multiple categorical columns specified in <em>cols</em> to dummy variables if their cardinality is &lt;= 8 or the column is ‘postal_cd’.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.getdata">
-<code class="descname">getdata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.getdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.getdata" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.remove_column_duplicates">
-<code class="descname">remove_column_duplicates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_column_duplicates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_column_duplicates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the columns that have duplicates (as determined by <em>duplicate_columns()</em>).
-Also removes columns that have the same name as other columns in case they aren’t caught by the above.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.remove_column_nulls">
-<code class="descname">remove_column_nulls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_column_nulls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_column_nulls" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes columns that are all null.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.remove_drops_raw">
-<code class="descname">remove_drops_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_drops_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_drops_raw" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the columns <em>drop_cols</em> we specified to drop for the class</p>
+<dt id="preprocess_raw.PreprocessRaw.convert_dummies_raw">
+<code class="descname">convert_dummies_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.convert_dummies_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.convert_dummies_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the PreprocessRaw class categorical variables to dummies</p>
 </dd></dl>
 
 <dl class="method">
@@ -250,28 +270,10 @@ Also removes columns that have the same name as other columns in case they aren�
 </dd></dl>
 
 <dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.remove_no_var">
-<code class="descname">remove_no_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_no_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_no_var" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes columns with 0 variance.</p>
+<dt id="preprocess_raw.PreprocessRaw.applyall_raw">
+<code class="descname">applyall_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.applyall_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.applyall_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply all functions to a PreprocessRaw dataset to preprocess the raw features.</p>
 </dd></dl>
-
-<dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.rename_col">
-<code class="descname">rename_col</code><span class="sig-paren">(</span><em>col</em>, <em>new_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.rename_col"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.rename_col" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rename a column <em>col</em> of the dataframe a new name according to <em>new_name</em></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="preprocess_raw.PreprocessRaw.summary">
-<code class="descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.summary" title="Permalink to this definition">¶</a></dt>
-<dd><p>Takes a DataFrame and creates a summary. Does different things if object or numeric features.
-Reports the data type, some stats, the number of unique values, and null count/percent for each column.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="preprocess_raw.PreprocessRaw.yn_cols">
-<code class="descname">yn_cols</code><em class="property"> = ['connection_supports_school_library_or_nif', 'includes_voluntary_extensions', 'basic_firewall_protection', 'based_on_state_master_contract', 'based_on_multiple_award_schedule', 'pricing_confidentiality', 'lease_or_non_purchase_agreement', 'connected_directly_to_school_library_or_nif', 'was_fcc_form470_posted', 'frn_previous_year_exists']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.yn_cols" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 

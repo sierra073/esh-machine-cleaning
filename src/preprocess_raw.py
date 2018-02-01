@@ -8,13 +8,16 @@ class PreprocessRaw(object):
     """A raw dataset (coming from frns and frn_line_items tables) that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.
     """
 
+    """declare the columns to be dropped that could never be useful"""
     drop_cols = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number','establishing_fcc_form470', 'user_entered_establishing_fcc_form470','line_item', 
     'award_date', 'expiration_date', 'contract_expiry_date', 'service_start_date','model','contract_number', 'restriction_citation', 'other_manufacture', 
     'download_speed','download_speed_units','upload_speed','upload_speed_units','burstable_speed','burstable_speed_units','purpose', 'source_of_matching_funds']
 
+    """declare the columns that are yes/no"""
     yn_cols = ['connection_supports_school_library_or_nif', 'includes_voluntary_extensions', 'basic_firewall_protection', 'based_on_state_master_contract',
     'based_on_multiple_award_schedule', 'pricing_confidentiality', 'lease_or_non_purchase_agreement', 'connected_directly_to_school_library_or_nif','was_fcc_form470_posted','frn_previous_year_exists']
 
+    """declare the columns that don't need the float conversion"""
     cat_cols = ['pricing_confidentiality', 'based_on_state_master_contract', 'lease_or_non_purchase_agreement', 'based_on_multiple_award_schedule',  
     'was_fcc_form470_posted', 'connection_supports_school_library_or_nif' ,'connected_directly_to_school_library_or_nif','basic_firewall_protection','includes_voluntary_extensions','pricing_confidentiality_type',
     'fiber_type','connection_used_by','fiber_sub_type','purpose','unit','function','postal_cd','type_of_product','service_provider_name','billed_entity_name',
@@ -162,7 +165,7 @@ class PreprocessRaw(object):
             #replace spaces and slashes with underscore
             self.df[col] = self.df[col].replace('\s+', '_',regex=True).replace('/', '_',regex=True)
             #check cardinality
-            if (self.df.groupby(col)['total_pre_discount_charges'].max().reset_index().shape[0] <= 8) or (col == 'postal_cd'):
+            if (self.df.groupby(col)['download_speed_mbps'].max().reset_index().shape[0] <= 8) or (col == 'postal_cd'):
                 dummy_cols.append(col)
 
         dummy_cols_prefixed = [col.split('_', 1)[0] for col in dummy_cols]
