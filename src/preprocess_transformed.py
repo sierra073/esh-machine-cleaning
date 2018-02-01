@@ -30,7 +30,7 @@ class PreprocessTransformed(PreprocessRaw):
         return self
 
     def convert_ints_transformed(self):
-        """Convert num_lines and service_category to integers."""
+        """Convert just consortium_shared (for now) to int."""
         def make_int(x):
             """General function: make values integer that are floats/when there is a NULL value."""
             if pd.isnull(x):
