@@ -23,15 +23,21 @@ class PreprocessRaw(object):
     'fiber_type','connection_used_by','fiber_sub_type','purpose','unit','function','postal_cd','type_of_product','service_provider_name','billed_entity_name',
     'funding_request_nickname','narrative','contact_email','frn_previous_year_exists']
 
-    def __init__(self, df):
+    def __init__(self, df, verbose):
         self.df = df
+        self.verbose = verbose
 
     def getdata(self):
         return self.df
 
     def remove_column_nulls(self):
         """Removes columns that are all null."""
-        self.df = self.df.dropna(axis=1, how='all')
+        if self.verbose==True:
+            print("Dropped null columns: ")
+            print(self.df.columns[self.df.isnull().all()].tolist())
+            self.df = self.df.dropna(axis=1, how='all')
+        else:
+            self.df = self.df.dropna(axis=1, how='all')
         return self
 
     def duplicate_columns(self):
@@ -59,6 +65,9 @@ class PreprocessRaw(object):
         dups = self.duplicate_columns()
         self.df = self.df.drop(dups, axis=1)
         self.df = self.df.loc[:,~self.df.columns.duplicated()]
+        if self.verbose==True:
+            print("Dropped duplicate columns: ")
+            print(dups)
         return self
 
 
@@ -67,7 +76,8 @@ class PreprocessRaw(object):
         Reports the data type, some stats, the number of unique values, and null count/percent for each column.
         """
         summary_list = []
-        print 'SHAPE', self.df.shape
+        if self.verbose==True:
+            print 'SHAPE', self.df.shape
         
         for i in self.df.columns:
             vals = self.df[i]    
@@ -103,16 +113,24 @@ class PreprocessRaw(object):
         nunique = self.df.apply(pd.Series.nunique)
         cols_to_drop = nunique[nunique == 1].index
         self.df = self.df.drop(cols_to_drop, axis=1)
+        if self.verbose==True and len(cols_to_drop) >=1:
+            print("Dropped 0-variance columns: ")
+            print(cols_to_drop)
         return self
 
     def remove_drops_raw(self):
         """Removes the columns *drop_cols* we specified to drop for the class"""
         self.df = self.df.drop(self.__class__.drop_cols, axis=1)
+        if self.verbose==True:
+            print("Dropped: ")
+            print(self.__class__.drop_cols)
         return self
 
     def rename_col(self,col,new_name):
         """Rename a column *col* of the dataframe a new name according to *new_name*"""
         self.df = self.df.rename(columns = {col: new_name})
+        if self.verbose==True:
+            print("Renamed " + col + " to " + new_name)
         return self
 
     def convert_floats(self,cat_cols):
@@ -122,10 +140,11 @@ class PreprocessRaw(object):
         for col in self.df.columns: 
             if col not in cat_cols:
                 try:
-                    print col
                     self.df[col] = self.df[col].astype(float)
+                    if self.verbose==True:
+                        print(col + " converted to float")
                 except (ValueError, TypeError):
-                    print "ERROR"
+                    print(col + " float conversion failed")
                     continue
         return self
 
@@ -146,7 +165,8 @@ class PreprocessRaw(object):
             else:
                 var_corrected.append(None)
         self.df[col] = var_corrected
-        print(col + " converted")
+        if self.verbose==True:
+            print(col + " converted to boolean")
         return self
 
     def convert_yn_raw(self):
@@ -156,7 +176,7 @@ class PreprocessRaw(object):
         return self
 
     def convert_dummies(self,cols):
-        """General function: convert multiple categorical columns specified in *cols* to dummy variables if their cardinality is <= 8 or the column is 'postal_cd'.
+        """General function: convert multiple categorical columns specified in *cols* to dummy variables if their cardinality is <= 9 or the column is 'postal_cd'.
         """
         dummy_cols = []
         for col in cols:
@@ -165,11 +185,13 @@ class PreprocessRaw(object):
             #replace spaces and slashes with underscore
             self.df[col] = self.df[col].replace('\s+', '_',regex=True).replace('/', '_',regex=True)
             #check cardinality
-            if (self.df.groupby(col)['download_speed_mbps'].max().reset_index().shape[0] <= 8) or (col == 'postal_cd'):
+            if (self.df.groupby(col)['download_speed_mbps'].max().reset_index().shape[0] <= 9) or (col == 'postal_cd'):
                 dummy_cols.append(col)
 
         dummy_cols_prefixed = [col.split('_', 1)[0] for col in dummy_cols]
-        print(dummy_cols)
+        if self.verbose==True:
+            print("Dummified columns: ")
+            print(dummy_cols)
 
         self.df = pd.get_dummies(self.df, columns=dummy_cols, prefix=dummy_cols_prefixed)
         return self
@@ -187,6 +209,9 @@ class PreprocessRaw(object):
         s1.sort_values('col')
         mostly_not_null_cols = s1[s1.null_pct < .74]
         self.df = self.df[mostly_not_null_cols.col.tolist()]
+        if self.verbose == True:
+            print("Dropped columns >= 74% NULL: ")
+            print(s1[s1.null_pct >= .74].col.tolist())
         return self
 
     def applyall_raw(self):

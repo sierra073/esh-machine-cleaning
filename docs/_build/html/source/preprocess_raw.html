@@ -157,7 +157,7 @@
 <span id="preprocess-raw-module"></span><h1>preprocess_raw module<a class="headerlink" href="#module-preprocess_raw" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="preprocess_raw.PreprocessRaw">
-<em class="property">class </em><code class="descclassname">preprocess_raw.</code><code class="descname">PreprocessRaw</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">preprocess_raw.</code><code class="descname">PreprocessRaw</code><span class="sig-paren">(</span><em>df</em>, <em>verbose</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A raw dataset (coming from frns and frn_line_items tables) that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.</p>
 <dl class="attribute">
@@ -254,7 +254,7 @@ Since there are more float variables than categorical/string variables, it takes
 <dl class="method">
 <dt id="preprocess_raw.PreprocessRaw.convert_dummies">
 <code class="descname">convert_dummies</code><span class="sig-paren">(</span><em>cols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.convert_dummies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.convert_dummies" title="Permalink to this definition">¶</a></dt>
-<dd><p>General function: convert multiple categorical columns specified in <em>cols</em> to dummy variables if their cardinality is &lt;= 8 or the column is ‘postal_cd’.</p>
+<dd><p>General function: convert multiple categorical columns specified in <em>cols</em> to dummy variables if their cardinality is &lt;= 9 or the column is ‘postal_cd’.</p>
 </dd></dl>
 
 <dl class="method">

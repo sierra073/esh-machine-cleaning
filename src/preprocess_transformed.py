@@ -5,12 +5,8 @@ class PreprocessTransformed(PreprocessRaw):
     Inherits the PreprocessRaw class.
     """
 
-    def __init__(self, df):
-        PreprocessRaw.__init__(self, df)
-
-    """declare the columns to be dropped that could never be useful"""
-    drop_cols_transformed = []
-
+    def __init__(self, df, verbose):
+        PreprocessRaw.__init__(self, df, verbose)
 
     def treat_tough_string_vars(self,col):
         """General function: treat the variable *col* to enable conversion to int.
@@ -39,6 +35,9 @@ class PreprocessTransformed(PreprocessRaw):
                 return int(float(x))
 
         self.df.loc[:,'consortium_shared'] = self.df.consortium_shared.apply(make_int)
+        self.df.loc[:,'line_item_id'] = self.df.line_item_id.apply(make_int)
+        if self.verbose==True:
+            print("consortium_shared and line_item_id converted to Int")
         return self
 
     def remove_drops_transformed(self):
@@ -46,8 +45,9 @@ class PreprocessTransformed(PreprocessRaw):
         transformed_cost_cols = ['one_time_elig_cost','rec_cost','rec_elig_cost','total_cost']
         for col in self.df.columns.values:
             if (col.find("_cost") != -1 and col not in transformed_cost_cols) or col.find("_charges") != -1 or col=='service_provider_name':
-                print col
                 self.df = self.df.drop(col, axis=1)
+                if self.verbose==True:
+                    print(col + " removed")
         return self
 
     def convert_dummies_transformed(self):
