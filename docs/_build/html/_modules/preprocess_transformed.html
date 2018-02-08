@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>preprocess_transformed &mdash; Machine Cleaning 2018 Feature Preprocessing 0.1 documentation</title>
+  <title>preprocess_transformed &mdash; Machine Cleaning 2018 0.1 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="Machine Cleaning 2018 Feature Preprocessing 0.1 documentation" href="../index.html"/>
+    <link rel="top" title="Machine Cleaning 2018 0.1 documentation" href="../index.html"/>
         <link rel="up" title="Module code" href="index.html"/> 
 
   
@@ -55,7 +55,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> Machine Cleaning 2018 Feature Preprocessing
+            <a href="../index.html" class="icon icon-home"> Machine Cleaning 2018
           
 
           
@@ -99,7 +99,7 @@
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">Machine Cleaning 2018 Feature Preprocessing</a>
+          <a href="../index.html">Machine Cleaning 2018</a>
         
       </nav>
 
@@ -207,9 +207,43 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">convert_dummies</span><span class="p">(</span><span class="n">transformed_cat_cols</span><span class="p">)</span></div>
         <span class="k">return</span> <span class="bp">self</span>
 
+<div class="viewcode-block" id="PreprocessTransformed.remove_correlated_transformed"><a class="viewcode-back" href="../source/preprocess_transformed.html#preprocess_transformed.PreprocessTransformed.remove_correlated_transformed">[docs]</a>    <span class="k">def</span> <span class="nf">remove_correlated_transformed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
+        <span class="n">col_corr</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span> <span class="c1"># Set of all the names of deleted columns</span>
+        <span class="n">data_sub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">dtypes</span> <span class="o">==</span> <span class="nb">float</span><span class="p">]</span>
+        <span class="c1">#create a dict of the float columns and their number of nulls</span>
+        <span class="n">nnull_dict</span> <span class="o">=</span> <span class="n">data_sub</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">nnull_dict</span><span class="p">)</span>
+
+        <span class="n">corr_matrix</span> <span class="o">=</span> <span class="n">data_sub</span><span class="o">.</span><span class="n">corr</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">corr_matrix</span><span class="o">.</span><span class="n">columns</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">corr_matrix</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">:</span>
+                    <span class="n">colname1</span> <span class="o">=</span> <span class="n">corr_matrix</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">colname2</span> <span class="o">=</span> <span class="n">corr_matrix</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                    <span class="c1">#choose the one with more nulls to remove</span>
+                    <span class="k">if</span> <span class="n">nnull_dict</span><span class="p">[</span><span class="n">colname1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">nnull_dict</span><span class="p">[</span><span class="n">colname2</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">colname2</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;bandwidth_in_mbps&#39;</span><span class="p">,</span><span class="s1">&#39;num_lines&#39;</span><span class="p">,</span><span class="s1">&#39;rec_cost&#39;</span><span class="p">,</span><span class="s1">&#39;total_cost&#39;</span><span class="p">]:</span>
+                            <span class="n">colname</span> <span class="o">=</span> <span class="n">colname2</span>
+                            <span class="n">othercolname</span> <span class="o">=</span> <span class="n">colname1</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">colname</span> <span class="o">=</span> <span class="n">colname1</span>
+                            <span class="n">othercolname</span> <span class="o">=</span> <span class="n">colname2</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">colname1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;bandwidth_in_mbps&#39;</span><span class="p">,</span><span class="s1">&#39;num_lines&#39;</span><span class="p">,</span><span class="s1">&#39;rec_cost&#39;</span><span class="p">,</span><span class="s1">&#39;total_cost&#39;</span><span class="p">]:</span>
+                            <span class="n">colname</span> <span class="o">=</span> <span class="n">colname1</span>
+                            <span class="n">othercolname</span> <span class="o">=</span> <span class="n">colname2</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">colname</span> <span class="o">=</span> <span class="n">colname2</span>
+                            <span class="n">othercolname</span> <span class="o">=</span> <span class="n">colname1</span>
+                    <span class="n">col_corr</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">colname</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">colname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">colname</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># deleting the column from the dataset</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span></div>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dropped &quot;</span> <span class="o">+</span> <span class="n">colname</span> <span class="o">+</span> <span class="s2">&quot; due to high correlation with &quot;</span> <span class="o">+</span> <span class="n">othercolname</span><span class="p">)</span>
+
 <div class="viewcode-block" id="PreprocessTransformed.applyall_transformed"><a class="viewcode-back" href="../source/preprocess_transformed.html#preprocess_transformed.PreprocessTransformed.applyall_transformed">[docs]</a>    <span class="k">def</span> <span class="nf">applyall_transformed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Apply all functions to a PreprocessTransformed dataset to preprocess the raw + transformed features.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">applyall_raw</span><span class="p">()</span><span class="o">.</span><span class="n">convert_ints_transformed</span><span class="p">()</span><span class="o">.</span><span class="n">remove_drops_transformed</span><span class="p">()</span><span class="o">.</span><span class="n">convert_dummies_transformed</span><span class="p">()</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_column_nulls</span><span class="p">()</span><span class="o">.</span><span class="n">remove_column_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">remove_no_var</span><span class="p">()</span><span class="o">.</span><span class="n">remove_drops_raw</span><span class="p">()</span><span class="o">.</span><span class="n">rename_col</span><span class="p">(</span><span class="s1">&#39;purpose_adj&#39;</span><span class="p">,</span><span class="s1">&#39;purpose&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">convert_floats_raw</span><span class="p">()</span><span class="o">.</span><span class="n">convert_yn_raw</span><span class="p">()</span><span class="o">.</span><span class="n">convert_dummies_raw</span><span class="p">()</span><span class="o">.</span><span class="n">remove_mostly_nulls</span><span class="p">()</span><span class="o">.</span><span class="n">convert_ints_transformed</span><span class="p">()</span><span class="o">.</span><span class="n">remove_drops_transformed</span><span class="p">()</span><span class="o">.</span><span class="n">convert_dummies_transformed</span><span class="p">()</span><span class="o">.</span><span class="n">remove_correlated_transformed</span><span class="p">(</span><span class="o">.</span><span class="mi">9</span><span class="p">)</span></div></div>
         <span class="k">return</span> <span class="bp">self</span>
 </pre></div>
 
