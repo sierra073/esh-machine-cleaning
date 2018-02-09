@@ -6,6 +6,12 @@ import pickle
 
 class PreprocessRaw(object):
     """A raw dataset (coming from frns and frn_line_items tables) that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.
+    Attributes:
+        -df: the dataset
+        -verbose: whether or not to print relevant information for each method applied
+        -max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 9)
+        -null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (default: 0.74)
+        -corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (default: 0.9)
     """
 
     """declare the columns to be dropped that could never be useful"""
@@ -23,9 +29,12 @@ class PreprocessRaw(object):
     'fiber_type','connection_used_by','fiber_sub_type','purpose','unit','function','postal_cd','type_of_product','service_provider_name','billed_entity_name',
     'funding_request_nickname','narrative','contact_email','frn_previous_year_exists']
 
-    def __init__(self, df, verbose):
+    def __init__(self, df, verbose, max_categories, null_threshold, corr_threshold):
         self.df = df
         self.verbose = verbose
+        self.max_categories = max_categories
+        self.null_threshold = null_threshold
+        self.corr_threshold = corr_threshold
 
     def getdata(self):
         return self.df
@@ -185,7 +194,7 @@ class PreprocessRaw(object):
             #replace spaces and slashes with underscore
             self.df[col] = self.df[col].replace('\s+', '_',regex=True).replace('/', '_',regex=True)
             #check cardinality
-            if (self.df.groupby(col)['download_speed_mbps'].max().reset_index().shape[0] <= 9) or (col == 'postal_cd'):
+            if (self.df.groupby(col).size().reset_index().shape[0] <= self.max_categories) or (col == 'postal_cd'):
                 dummy_cols.append(col)
 
         dummy_cols_prefixed = [col.split('_', 1)[0] for col in dummy_cols]
@@ -207,14 +216,14 @@ class PreprocessRaw(object):
         """Remove columns of the dataset that are >= 74% null."""
         s1 = self.summary()
         s1.sort_values('col')
-        mostly_not_null_cols = s1[s1.null_pct < .74]
+        mostly_not_null_cols = s1[s1.null_pct < self.null_threshold]
         self.df = self.df[mostly_not_null_cols.col.tolist()]
         if self.verbose == True:
             print("Dropped columns >= 74% NULL: ")
-            print(s1[s1.null_pct >= .74].col.tolist())
+            print(s1[s1.null_pct >= self.null_threshold].col.tolist())
         return self
 
-    def remove_correlated_raw(self, threshold):
+    def remove_correlated_raw(self):
         col_corr = set() # Set of all the names of deleted columns
         data_sub = self.df.loc[:, self.df.dtypes == float]
         #create a dict of the float columns and their number of nulls
@@ -224,7 +233,7 @@ class PreprocessRaw(object):
         corr_matrix = data_sub.corr()
         for i in range(len(corr_matrix.columns)):
             for j in range(i):
-                if corr_matrix.iloc[i, j] >= threshold:
+                if abs(corr_matrix.iloc[i, j]) >= self.corr_threshold:
                     colname1 = corr_matrix.columns[i]
                     colname2 = corr_matrix.columns[j]
                     #choose the one with more nulls to remove
@@ -242,7 +251,7 @@ class PreprocessRaw(object):
 
     def applyall_raw(self):
         """Apply all functions to a PreprocessRaw dataset to preprocess the raw features."""
-        self.remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().remove_correlated_raw(.9)
+        self.remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().remove_correlated_raw()
 
         return self
 

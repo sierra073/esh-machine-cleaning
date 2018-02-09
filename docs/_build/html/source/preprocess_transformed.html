@@ -154,7 +154,7 @@
 <span id="preprocess-transformed-module"></span><h1>preprocess_transformed module<a class="headerlink" href="#module-preprocess_transformed" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="preprocess_transformed.PreprocessTransformed">
-<em class="property">class </em><code class="descclassname">preprocess_transformed.</code><code class="descname">PreprocessTransformed</code><span class="sig-paren">(</span><em>df</em>, <em>verbose</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_transformed.html#PreprocessTransformed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_transformed.PreprocessTransformed" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">preprocess_transformed.</code><code class="descname">PreprocessTransformed</code><span class="sig-paren">(</span><em>df</em>, <em>verbose</em>, <em>max_categories</em>, <em>null_threshold</em>, <em>corr_threshold</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_transformed.html#PreprocessTransformed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_transformed.PreprocessTransformed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="preprocess_raw.html#preprocess_raw.PreprocessRaw" title="preprocess_raw.PreprocessRaw"><code class="xref py py-class docutils literal notranslate"><span class="pre">preprocess_raw.PreprocessRaw</span></code></a></p>
 <p>A raw dataset (coming from frns and frn_line_items tables), <em>as well as additional fields from the pristine line items table</em> that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.
 Inherits the PreprocessRaw class.</p>
@@ -185,7 +185,7 @@ Ex) for num_lines there are values such as “1.0”, “1”, “Unknown”, �
 
 <dl class="method">
 <dt id="preprocess_transformed.PreprocessTransformed.remove_correlated_transformed">
-<code class="descname">remove_correlated_transformed</code><span class="sig-paren">(</span><em>threshold</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_transformed.html#PreprocessTransformed.remove_correlated_transformed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_transformed.PreprocessTransformed.remove_correlated_transformed" title="Permalink to this definition">¶</a></dt>
+<code class="descname">remove_correlated_transformed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_transformed.html#PreprocessTransformed.remove_correlated_transformed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_transformed.PreprocessTransformed.remove_correlated_transformed" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">

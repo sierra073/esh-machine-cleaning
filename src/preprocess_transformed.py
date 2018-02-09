@@ -5,8 +5,8 @@ class PreprocessTransformed(PreprocessRaw):
     Inherits the PreprocessRaw class.
     """
 
-    def __init__(self, df, verbose):
-        PreprocessRaw.__init__(self, df, verbose)
+    def __init__(self, df, verbose, max_categories, null_threshold, corr_threshold):
+        PreprocessRaw.__init__(self, df, verbose, max_categories, null_threshold, corr_threshold)
 
     def treat_tough_string_vars(self,col):
         """General function: treat the variable *col* to enable conversion to int.
@@ -56,7 +56,7 @@ class PreprocessTransformed(PreprocessRaw):
         self.convert_dummies(transformed_cat_cols)
         return self
 
-    def remove_correlated_transformed(self, threshold):
+    def remove_correlated_transformed(self):
         col_corr = set() # Set of all the names of deleted columns
         data_sub = self.df.loc[:, self.df.dtypes == float]
         #create a dict of the float columns and their number of nulls
@@ -66,7 +66,7 @@ class PreprocessTransformed(PreprocessRaw):
         corr_matrix = data_sub.corr()
         for i in range(len(corr_matrix.columns)):
             for j in range(i):
-                if corr_matrix.iloc[i, j] >= threshold:
+                if abs(corr_matrix.iloc[i, j]) >= self.corr_threshold:
                     colname1 = corr_matrix.columns[i]
                     colname2 = corr_matrix.columns[j]
                     #choose the one with more nulls to remove
@@ -92,5 +92,5 @@ class PreprocessTransformed(PreprocessRaw):
 
     def applyall_transformed(self):
         """Apply all functions to a PreprocessTransformed dataset to preprocess the raw + transformed features."""
-        self.remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().convert_ints_transformed().remove_drops_transformed().convert_dummies_transformed().remove_correlated_transformed(.9)
+        self.remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().convert_ints_transformed().remove_drops_transformed().convert_dummies_transformed().remove_correlated_transformed()
         return self
