@@ -164,9 +164,9 @@ Attributes:</p>
 <blockquote>
 <div>-df: the dataset
 -verbose: whether or not to print relevant information for each method applied
--max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 9)
--null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (default: 0.74)
--corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (default: 0.9)</div></blockquote>
+-max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (suggested: 9)
+-null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (suggested: 0.74)
+-corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (suggested: 0.9)</div></blockquote>
 <dl class="attribute">
 <dt id="preprocess_raw.PreprocessRaw.drop_cols">
 <code class="descname">drop_cols</code><em class="property"> = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number', 'establishing_fcc_form470', 'user_entered_establishing_fcc_form470', 'line_item', 'award_date', 'expiration_date', 'contract_expiry_date', 'service_start_date', 'model', 'contract_number', 'restriction_citation', 'other_manufacture', 'download_speed', 'download_speed_units', 'upload_speed', 'upload_speed_units', 'burstable_speed', 'burstable_speed_units', 'purpose', 'source_of_matching_funds']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.drop_cols" title="Permalink to this definition">¶</a></dt>
@@ -261,7 +261,7 @@ Since there are more float variables than categorical/string variables, it takes
 <dl class="method">
 <dt id="preprocess_raw.PreprocessRaw.convert_dummies">
 <code class="descname">convert_dummies</code><span class="sig-paren">(</span><em>cols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.convert_dummies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.convert_dummies" title="Permalink to this definition">¶</a></dt>
-<dd><p>General function: convert multiple categorical columns specified in <em>cols</em> to dummy variables if their cardinality is &lt;= 9 or the column is ‘postal_cd’.</p>
+<dd><p>General function: convert multiple categorical columns specified in <em>cols</em> to dummy variables if their cardinality is &lt;= <em>max_categories</em> or the column is ‘postal_cd’.</p>
 </dd></dl>
 
 <dl class="method">
@@ -273,7 +273,7 @@ Since there are more float variables than categorical/string variables, it takes
 <dl class="method">
 <dt id="preprocess_raw.PreprocessRaw.remove_mostly_nulls">
 <code class="descname">remove_mostly_nulls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_mostly_nulls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_mostly_nulls" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove columns of the dataset that are &gt;= 74% null.</p>
+<dd><p>Remove columns of the dataset that have percent null (<em>null_pct</em>) &gt;= <em>null_threshold</em>.</p>
 </dd></dl>
 
 <dl class="method">

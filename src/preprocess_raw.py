@@ -9,12 +9,13 @@ class PreprocessRaw(object):
     Attributes:
         -df: the dataset
         -verbose: whether or not to print relevant information for each method applied
-        -max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 9)
-        -null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (default: 0.74)
-        -corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (default: 0.9)
+        -max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (suggested: 9)
+        -null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (suggested: 0.74)
+        -corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (suggested: 0.9)
     """
 
     """declare the columns to be dropped that could never be useful"""
+    ## dropping purpose because it's redefined in the SQL code
     drop_cols = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number','establishing_fcc_form470', 'user_entered_establishing_fcc_form470','line_item', 
     'award_date', 'expiration_date', 'contract_expiry_date', 'service_start_date','model','contract_number', 'restriction_citation', 'other_manufacture', 
     'download_speed','download_speed_units','upload_speed','upload_speed_units','burstable_speed','burstable_speed_units','purpose', 'source_of_matching_funds']
@@ -185,7 +186,7 @@ class PreprocessRaw(object):
         return self
 
     def convert_dummies(self,cols):
-        """General function: convert multiple categorical columns specified in *cols* to dummy variables if their cardinality is <= 9 or the column is 'postal_cd'.
+        """General function: convert multiple categorical columns specified in *cols* to dummy variables if their cardinality is <= *max_categories* or the column is 'postal_cd'.
         """
         dummy_cols = []
         for col in cols:
@@ -213,13 +214,13 @@ class PreprocessRaw(object):
         return self
 
     def remove_mostly_nulls(self):
-        """Remove columns of the dataset that are >= 74% null."""
+        """Remove columns of the dataset that have percent null (*null_pct*) >= *null_threshold*."""
         s1 = self.summary()
         s1.sort_values('col')
         mostly_not_null_cols = s1[s1.null_pct < self.null_threshold]
         self.df = self.df[mostly_not_null_cols.col.tolist()]
         if self.verbose == True:
-            print("Dropped columns >= 74% NULL: ")
+            print("Dropped columns >= " + str(self.null_threshold*100) + "% NULL: ")
             print(s1[s1.null_pct >= self.null_threshold].col.tolist())
         return self
 
