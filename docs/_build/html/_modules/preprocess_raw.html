@@ -158,11 +158,11 @@
 <div class="viewcode-block" id="PreprocessRaw"><a class="viewcode-back" href="../source/preprocess_raw.html#preprocess_raw.PreprocessRaw">[docs]</a><span class="k">class</span> <span class="nc">PreprocessRaw</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A raw dataset (coming from frns and frn_line_items tables) that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.</span>
 <span class="sd">    Attributes:</span>
-<span class="sd">        -df: the dataset</span>
-<span class="sd">        -verbose: whether or not to print relevant information for each method applied</span>
-<span class="sd">        -max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (suggested: 9)</span>
-<span class="sd">        -null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (suggested: 0.74)</span>
-<span class="sd">        -corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (suggested: 0.9)</span>
+<span class="sd">        * df: the dataset</span>
+<span class="sd">        * verbose: whether or not to print relevant information for each method applied</span>
+<span class="sd">        * max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (suggested: 9)</span>
+<span class="sd">        * null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (suggested: 0.74)</span>
+<span class="sd">        * corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (suggested: 0.9)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="sd">&quot;&quot;&quot;declare the columns to be dropped that could never be useful&quot;&quot;&quot;</span>

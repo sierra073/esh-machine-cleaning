@@ -7,11 +7,11 @@ import pickle
 class PreprocessRaw(object):
     """A raw dataset (coming from frns and frn_line_items tables) that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.
     Attributes:
-        -df: the dataset
-        -verbose: whether or not to print relevant information for each method applied
-        -max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (suggested: 9)
-        -null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (suggested: 0.74)
-        -corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (suggested: 0.9)
+        * df: the dataset
+        * verbose: whether or not to print relevant information for each method applied
+        * max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (suggested: 9)
+        * null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (suggested: 0.74)
+        * corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (suggested: 0.9)
     """
 
     """declare the columns to be dropped that could never be useful"""
