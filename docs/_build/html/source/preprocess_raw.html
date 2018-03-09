@@ -157,17 +157,17 @@
 <span id="preprocess-raw-module"></span><h1>preprocess_raw module<a class="headerlink" href="#module-preprocess_raw" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="preprocess_raw.PreprocessRaw">
-<em class="property">class </em><code class="descclassname">preprocess_raw.</code><code class="descname">PreprocessRaw</code><span class="sig-paren">(</span><em>df</em>, <em>verbose</em>, <em>max_categories</em>, <em>null_threshold</em>, <em>corr_threshold</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">preprocess_raw.</code><code class="descname">PreprocessRaw</code><span class="sig-paren">(</span><em>df</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A raw dataset (coming from frns and frn_line_items tables) that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.
 Attributes:</p>
 <blockquote>
 <div><ul class="simple">
-<li>df: the dataset</li>
-<li>verbose: whether or not to print relevant information for each method applied</li>
-<li>max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (suggested: 9)</li>
-<li>null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (suggested: 0.74)</li>
-<li>corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (suggested: 0.9)</li>
+<li>df: the dataset (mandatory - other variables are optional)</li>
+<li>verbose: whether or not to print relevant information for each method applied (default: False)</li>
+<li>max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 9)</li>
+<li>null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (default: 0.74)</li>
+<li>corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (default: 0.9)</li>
 </ul>
 </div></blockquote>
 <dl class="attribute">
@@ -191,6 +191,12 @@ Attributes:</p>
 <dt id="preprocess_raw.PreprocessRaw.getdata">
 <code class="descname">getdata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.getdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.getdata" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="preprocess_raw.PreprocessRaw.remove_row_duplicates">
+<code class="descname">remove_row_duplicates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_row_duplicates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_row_duplicates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes any frn_adjusted ids that are duplicated (rows).</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="preprocess_raw.PreprocessRaw.remove_column_nulls">
