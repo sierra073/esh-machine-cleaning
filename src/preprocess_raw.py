@@ -7,11 +7,11 @@ import pickle
 class PreprocessRaw(object):
     """A raw dataset (coming from frns and frn_line_items tables) that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.
     Attributes:
-        * df: the dataset
-        * verbose: whether or not to print relevant information for each method applied
-        * max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (suggested: 9)
-        * null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (suggested: 0.74)
-        * corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (suggested: 0.9)
+        * df: the dataset (mandatory - other variables are optional)
+        * verbose: whether or not to print relevant information for each method applied (default: False)
+        * max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 9)
+        * null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (default: 0.74)
+        * corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (default: 0.9)
     """
 
     """declare the columns to be dropped that could never be useful"""
@@ -30,15 +30,29 @@ class PreprocessRaw(object):
     'fiber_type','connection_used_by','fiber_sub_type','purpose','unit','function','postal_cd','type_of_product','service_provider_name','billed_entity_name',
     'funding_request_nickname','narrative','contact_email','frn_previous_year_exists']
 
-    def __init__(self, df, verbose, max_categories, null_threshold, corr_threshold):
+    def __init__(self, df, **kwargs):
         self.df = df
-        self.verbose = verbose
-        self.max_categories = max_categories
-        self.null_threshold = null_threshold
-        self.corr_threshold = corr_threshold
+        self.verbose = kwargs.get('verbose',False)
+        self.max_categories = kwargs.get('max_categories',9) 
+        self.null_threshold = kwargs.get('null_threshold',.74) 
+        self.corr_threshold = kwargs.get('corr_threshold',.9) 
 
     def getdata(self):
         return self.df
+
+    def remove_row_duplicates(self):
+        """Removes any frn_adjusted ids that are duplicated (rows)."""
+        n1 = self.df.shape[0]
+
+        df_duplicates = self.df.groupby(['frn_adjusted']).size().reset_index().rename(columns={0:'count_duplicates'})
+        df_duplicates = df_duplicates[df_duplicates.count_duplicates >= 2]
+        self.df = self.df[-self.df.frn_adjusted.isin(df_duplicates.frn_adjusted)]
+
+        n = n1 - self.df.shape[0]
+        if self.verbose==True:
+            print("Dropped " + str(n) + " duplicate rows")
+
+        return self
 
     def remove_column_nulls(self):
         """Removes columns that are all null."""
@@ -130,10 +144,11 @@ class PreprocessRaw(object):
 
     def remove_drops_raw(self):
         """Removes the columns *drop_cols* we specified to drop for the class"""
-        self.df = self.df.drop(self.__class__.drop_cols, axis=1)
-        if self.verbose==True:
-            print("Dropped: ")
-            print(self.__class__.drop_cols)
+        for col in self.__class__.drop_cols:
+            if col in self.df.columns:
+                self.df = self.df.drop(col, axis=1)
+            if self.verbose==True:
+                print("Dropped: ") + col
         return self
 
     def rename_col(self,col,new_name):
@@ -182,7 +197,8 @@ class PreprocessRaw(object):
     def convert_yn_raw(self):
         """Convert the PreprocessRaw class 'Yes'/'No' variables to boolean."""
         for col in self.__class__.yn_cols:
-            self.convert_yn(col)
+            if col in self.df.columns:
+                self.convert_yn(col)
         return self
 
     def convert_dummies(self,cols):
@@ -209,7 +225,7 @@ class PreprocessRaw(object):
     def convert_dummies_raw(self):
         """Convert the PreprocessRaw class categorical variables to dummies"""
         s = set(self.__class__.yn_cols)
-        cat_cols_no_bool = [x for x in self.__class__.cat_cols if x not in s]
+        cat_cols_no_bool = [x for x in self.__class__.cat_cols if (x in self.df.columns) and (x not in s)]
         self.convert_dummies(cat_cols_no_bool)
         return self
 
@@ -252,7 +268,7 @@ class PreprocessRaw(object):
 
     def applyall_raw(self):
         """Apply all functions to a PreprocessRaw dataset to preprocess the raw features."""
-        self.remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().remove_correlated_raw()
+        self.remove_row_duplicates().remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().remove_correlated_raw()
 
         return self
 

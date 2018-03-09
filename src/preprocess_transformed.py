@@ -5,8 +5,8 @@ class PreprocessTransformed(PreprocessRaw):
     Inherits the PreprocessRaw class.
     """
 
-    def __init__(self, df, verbose, max_categories, null_threshold, corr_threshold):
-        PreprocessRaw.__init__(self, df, verbose, max_categories, null_threshold, corr_threshold)
+    def __init__(self, df, **kwargs):
+        PreprocessRaw.__init__(self, df, **kwargs)
 
     def treat_tough_string_vars(self,col):
         """General function: treat the variable *col* to enable conversion to int.
@@ -35,9 +35,9 @@ class PreprocessTransformed(PreprocessRaw):
                 return int(float(x))
 
         self.df.loc[:,'consortium_shared'] = self.df.consortium_shared.apply(make_int)
-        self.df.loc[:,'line_item_id'] = self.df.line_item_id.apply(make_int)
+        #self.df.loc[:,'line_item_id'] = self.df.line_item_id.apply(make_int)
         if self.verbose==True:
-            print("consortium_shared and line_item_id converted to Int")
+            print("consortium_shared converted to Int")
         return self
 
     def remove_drops_transformed(self):
@@ -92,5 +92,5 @@ class PreprocessTransformed(PreprocessRaw):
 
     def applyall_transformed(self):
         """Apply all functions to a PreprocessTransformed dataset to preprocess the raw + transformed features."""
-        self.remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().convert_ints_transformed().remove_drops_transformed().convert_dummies_transformed().remove_correlated_transformed()
+        self.remove_row_duplicates().remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().convert_ints_transformed().remove_drops_transformed().convert_dummies_transformed().remove_correlated_transformed()
         return self
