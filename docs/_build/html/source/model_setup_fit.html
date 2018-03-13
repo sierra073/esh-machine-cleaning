@@ -1,0 +1,315 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>model_setup_fit module &mdash; Machine Cleaning 2018 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="Machine Cleaning 2018 0.1 documentation" href="../index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Machine Cleaning 2018
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">model_setup_fit module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Machine Cleaning 2018</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>model_setup_fit module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/source/model_setup_fit.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-model_setup_fit">
+<span id="model-setup-fit-module"></span><h1>model_setup_fit module<a class="headerlink" href="#module-model_setup_fit" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="model_setup_fit.get_table_from_db">
+<code class="descclassname">model_setup_fit.</code><code class="descname">get_table_from_db</code><span class="sig-paren">(</span><em>query_src</em>, <em>type</em>, <em>HOST</em>, <em>USER</em>, <em>PASSWORD</em>, <em>DB</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#get_table_from_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.get_table_from_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a pandas dataframe from a query to a Postgres database.
+* <strong>sql_file</strong>: input the name of the sql file as a string, e.g. ‘get_raw_data.sql’
+* <strong>type</strong>: what for the query is in, ‘string’ or ‘file’
+* <strong>HOST,USER,PASSWORD,DB</strong>: strings of your Postgres database credentials</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="model_setup_fit.drop_column_containing">
+<code class="descclassname">model_setup_fit.</code><code class="descname">drop_column_containing</code><span class="sig-paren">(</span><em>data</em>, <em>col</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#drop_column_containing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.drop_column_containing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the column(s) of a dataframe that start with the string ‘col’. Not unique to modeling so putting it outside the classes</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="model_setup_fit.get_clean_y_query">
+<code class="descclassname">model_setup_fit.</code><code class="descname">get_clean_y_query</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#get_clean_y_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.get_clean_y_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a query in the form of the string to obtain a specific variable y from Onyx services_received</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="model_setup_fit.Model">
+<em class="property">class </em><code class="descclassname">model_setup_fit.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>training_data</em>, <em>yvar</em>, <em>model</em>, <em>classification_type</em>, <em>imputer_strategy</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to initialize a model to fit to given training data and y variable, and fit a model using GridSearch cross valudation
+Input Attributes: all are mandatory except for <em>p</em></p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>training_data</strong>: the training dataset without the (clean) y variable</li>
+<li><strong>yvar</strong>: column name of y variable to predict</li>
+<li><strong>model</strong>: the type of model to fit. Options are one of: <em>[‘logisticregression’,’decisiontree’,’randomforest’,’gradientboosting’]</em></li>
+<li><strong>classification_type</strong>: <em>‘classification’</em> or <em>‘regression’</em></li>
+<li><strong>imputer_strategy</strong>: how to handle missing values – must be an array. Example 1: <em>imputer_strategy = [‘mean’]</em>. Example 2: <em>imputer_strategy = [‘mean’,’median’,’most_frequent’]</em></li>
+<li><strong>p</strong>: proportion of the training dataset to set for training; number between 0 and 1 (optional, default = 0.8)</li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="model_setup_fit.Model.merge_y_variable">
+<code class="descname">merge_y_variable</code><span class="sig-paren">(</span><em>queryfunc</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.merge_y_variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.merge_y_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the query for the y variable (given by <cite>get_clean_y_query(y)</cite>) and adds it as a column to the training set by joining via <em>frn_adjusted</em></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model_setup_fit.Model.label_encode">
+<code class="descname">label_encode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.label_encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.label_encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the y class variable in the format sklearn needs to run the model, as well as the <cite>LabelEncoder</cite> used</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model_setup_fit.Model.training_setup">
+<code class="descname">training_setup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.training_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.training_setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares the feature set and y variable for sklearn modeling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model_setup_fit.Model.get_train_test_split">
+<code class="descname">get_train_test_split</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.get_train_test_split"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.get_train_test_split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the training features X and y variable according to the proportion p. Returns 4 elements (X and y for training &amp; testing)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model_setup_fit.Model.build_pipe">
+<code class="descname">build_pipe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.build_pipe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.build_pipe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Primary method: prepares the training and test sets and model pipeline to input into GridSearch. Optional input attributes (keyword arguments) correspond to model parameter ARRAYS to test via GridSearch
+and depend on the model chosen. <em>Please refer to the `sklearn` docs for your desired model type, e.g. http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier)</em>.
+* Example for <em>model = ‘randomforest’</em>: <cite>build_pipe(n_estimators = [50,100,300], class_weight = [‘balanced’])</cite></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model_setup_fit.Model.print_score">
+<code class="descname">print_score</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.print_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.print_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>prints accuracy and confusion matrices for a given classification model that indicate performance; also returns the confusion matrices.
+If regression model, just prints the MSE</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model_setup_fit.Model.print_feature_importances">
+<code class="descname">print_feature_importances</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.print_feature_importances"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.print_feature_importances" title="Permalink to this definition">¶</a></dt>
+<dd><p>prints feature importances for a given model</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model_setup_fit.Model.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Primary method: fit the model specified in <cite>model_setup()</cite> via GridSearch. Input attributes correspond to the inputs to GridSearchCV (<a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html">http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html</a>).
+Note only the 3 listed below are applicable (rest are set implicitly):
+* <strong>cv</strong>: integer number of folds to use for cross validation (optional, default = 3)
+* <strong>scoring</strong>: metric to be optimized for (optional, default = ‘accuracy’)
+* <strong>verbose</strong>: integer indicating how much output you want to see from GridSearch (optional, default = 3)
+* Example: <cite>fit(cv=4,verbose=6)</cite></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sierra Costanza, Jamie Barnes, Adrianna Boghozian.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

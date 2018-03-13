@@ -2,16 +2,15 @@ import pandas as pd
 import numpy as np
 import math
 from collections import Counter
-import pickle
 
 class PreprocessRaw(object):
     """A raw dataset (coming from frns and frn_line_items tables) that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.
-    Attributes:
-        * df: the dataset (mandatory - other variables are optional)
-        * verbose: whether or not to print relevant information for each method applied (default: False)
-        * max_categories: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 9)
-        * null_threshold: value between 0 and 1 representing the minimum percent NULL any column should be (default: 0.74)
-        * corr_threshold: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (default: 0.9)
+    Input Attributes:
+        * **df**: the dataset (mandatory - other variables are optional)
+        * **verbose**: whether or not to print relevant information for each method applied (default: False)
+        * **max_categories**: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 9)
+        * **null_threshold**: value between 0 and 1 representing the minimum percent NULL any column should be (default: 0.74)
+        * **corr_threshold**: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (default: 0.9)
     """
 
     """declare the columns to be dropped that could never be useful"""
@@ -84,7 +83,7 @@ class PreprocessRaw(object):
         return dups  
 
     def remove_column_duplicates(self):
-        """Removes the columns that have duplicates (as determined by *duplicate_columns()*).
+        """Removes the columns that have duplicates (as determined by `duplicate_columns()`).
         Also removes columns that have the same name as other columns in case they aren't caught by the above."""
         dups = self.duplicate_columns()
         self.df = self.df.drop(dups, axis=1)
@@ -202,7 +201,7 @@ class PreprocessRaw(object):
         return self
 
     def convert_dummies(self,cols):
-        """General function: convert multiple categorical columns specified in *cols* to dummy variables if their cardinality is <= *max_categories* or the column is 'postal_cd'.
+        """General function: convert multiple categorical columns specified in *cols* to dummy variables if their cardinality is <= *max_categories* or the column is postal_cd.
         """
         dummy_cols = []
         for col in cols:
@@ -223,7 +222,7 @@ class PreprocessRaw(object):
         return self
 
     def convert_dummies_raw(self):
-        """Convert the PreprocessRaw class categorical variables to dummies"""
+        """Convert the `PreprocessRaw` class categorical variables to dummies"""
         s = set(self.__class__.yn_cols)
         cat_cols_no_bool = [x for x in self.__class__.cat_cols if (x in self.df.columns) and (x not in s)]
         self.convert_dummies(cat_cols_no_bool)
@@ -267,14 +266,7 @@ class PreprocessRaw(object):
                             print("Dropped " + colname + " due to high correlation with " + othercolname)
 
     def applyall_raw(self):
-        """Apply all functions to a PreprocessRaw dataset to preprocess the raw features."""
+        """Apply all functions to a `PreprocessRaw` dataset to preprocess the raw features."""
         self.remove_row_duplicates().remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().remove_correlated_raw()
 
         return self
-
-
-def final_columns_pickle(df,filepath):
-    """Pickle the final columns of your dataset and export. Only meant to be used once all preprocessing/EDA is finalized before modeling.
-    Takes in a dataframe and the string *filepath* as the file path of the export (no extension)."""
-    with open(filepath + '.pkl','w') as f:
-        pickle.dump(df.columns.tolist(),f)

@@ -1,0 +1,460 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>model_setup_fit &mdash; Machine Cleaning 2018 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="Machine Cleaning 2018 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Machine Cleaning 2018
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Machine Cleaning 2018</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>model_setup_fit</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for model_setup_fit</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">psycopg2</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="k">import</span> <span class="n">preprocessing</span>
+<span class="kn">from</span> <span class="nn">sklearn.preprocessing</span> <span class="k">import</span> <span class="n">Imputer</span>
+<span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="k">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">sklearn.pipeline</span> <span class="k">import</span> <span class="n">Pipeline</span>
+<span class="kn">from</span> <span class="nn">sklearn.grid_search</span> <span class="k">import</span> <span class="n">GridSearchCV</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="k">import</span> <span class="n">LogisticRegression</span>
+<span class="kn">from</span> <span class="nn">sklearn.tree</span> <span class="k">import</span> <span class="n">DecisionTreeClassifier</span><span class="p">,</span> <span class="n">DecisionTreeRegressor</span>
+<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">RandomForestClassifier</span><span class="p">,</span> <span class="n">RandomForestRegressor</span><span class="p">,</span> <span class="n">GradientBoostingClassifier</span><span class="p">,</span> <span class="n">GradientBoostingRegressor</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">mean_squared_error</span>
+
+<span class="sd">&quot;&quot;&quot;Onyx credentials&quot;&quot;&quot;</span>
+<span class="k">global</span> <span class="n">HOST</span><span class="p">,</span> <span class="n">USER</span><span class="p">,</span> <span class="n">PASSWORD</span><span class="p">,</span> <span class="n">DB</span>
+<span class="n">HOST</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;HOST&quot;</span><span class="p">)</span>
+<span class="n">USER</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;USER&quot;</span><span class="p">)</span>
+<span class="n">PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;PASSWORD&quot;</span><span class="p">)</span>
+<span class="n">DB</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;DB&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="get_table_from_db"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.get_table_from_db">[docs]</a><span class="k">def</span> <span class="nf">get_table_from_db</span><span class="p">(</span><span class="n">query_src</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">HOST</span><span class="p">,</span> <span class="n">USER</span><span class="p">,</span> <span class="n">PASSWORD</span><span class="p">,</span> <span class="n">DB</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates a pandas dataframe from a query to a Postgres database.  </span>
+<span class="sd">        * **sql_file**: input the name of the sql file as a string, e.g. &#39;get_raw_data.sql&#39;</span>
+<span class="sd">        * **type**: what for the query is in, &#39;string&#39; or &#39;file&#39;</span>
+<span class="sd">        * **HOST,USER,PASSWORD,DB**: strings of your Postgres database credentials</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="o">+</span><span class="s1">&#39;/sql&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Querying data from DB connection&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="o">==</span><span class="s1">&#39;file&#39;</span><span class="p">:</span>
+        <span class="n">queryfile</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">query_src</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">queryfile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">queryfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">query_src</span>
+    
+    <span class="n">success</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Trying to establish initial connection to the server&quot;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">success</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span> <span class="n">host</span><span class="o">=</span><span class="n">HOST</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">USER</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">PASSWORD</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="n">DB</span> <span class="p">)</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Success!&quot;</span><span class="p">)</span>
+            <span class="n">success</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span>
+            <span class="k">break</span>
+        <span class="k">except</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">DatabaseError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Server closed connection, trying again&#39;</span><span class="p">)</span>
+            <span class="k">pass</span>
+    
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">description</span><span class="p">]</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">names</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">success</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Finished querying data&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">df</span>
+
+<div class="viewcode-block" id="drop_column_containing"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.drop_column_containing">[docs]</a><span class="k">def</span> <span class="nf">drop_column_containing</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Deletes the column(s) of a dataframe that start with the string &#39;col&#39;. Not unique to modeling so putting it outside the classes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">col_list</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col_list</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">col</span><span class="p">)</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">!=</span> <span class="s1">&#39;postal_ak&#39;</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="s2">&quot;Dropped: &quot;</span> <span class="o">+</span> <span class="n">c</span>
+</div>
+    <span class="k">return</span> <span class="n">data</span>
+
+<div class="viewcode-block" id="get_clean_y_query"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.get_clean_y_query">[docs]</a><span class="k">def</span> <span class="nf">get_clean_y_query</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a query in the form of the string to obtain a specific variable y from Onyx services_received&quot;&quot;&quot;</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="o">+</span><span class="s1">&#39;/sql&#39;</span><span class="p">)</span>
+
+    <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;get_yvar_onyx.sql&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;yvar&#39;</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">query</span>
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class to initialize a model to fit to given training data and y variable, and fit a model using GridSearch cross valudation</span>
+<span class="sd">    Input Attributes: all are mandatory except for *p*</span>
+<span class="sd">        * **training_data**: the training dataset without the (clean) y variable</span>
+<span class="sd">        * **yvar**: column name of y variable to predict</span>
+<span class="sd">        * **model**: the type of model to fit. Options are one of: *[&#39;logisticregression&#39;,&#39;decisiontree&#39;,&#39;randomforest&#39;,&#39;gradientboosting&#39;]*</span>
+<span class="sd">        * **classification_type**: *&#39;classification&#39;* or *&#39;regression&#39;*</span>
+<span class="sd">        * **imputer_strategy**: how to handle missing values -- must be an array. Example 1: *imputer_strategy = [&#39;mean&#39;]*. Example 2: *imputer_strategy = [&#39;mean&#39;,&#39;median&#39;,&#39;most_frequent&#39;]*</span>
+<span class="sd">        * **p**: proportion of the training dataset to set for training; number between 0 and 1 (optional, default = 0.8)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">training_data</span><span class="p">,</span> <span class="n">yvar</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">classification_type</span><span class="p">,</span> <span class="n">imputer_strategy</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">training_data</span> <span class="o">=</span> <span class="n">training_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yvar</span> <span class="o">=</span> <span class="n">yvar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classification_type</span> <span class="o">=</span> <span class="n">classification_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imputer_strategy</span> <span class="o">=</span> <span class="n">imputer_strategy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span><span class="o">.</span><span class="mi">8</span><span class="p">)</span> 
+        <span class="c1">#y variable (actual column, not name)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">()</span> 
+        <span class="c1">#label encoder used for y variable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">le</span> <span class="o">=</span> <span class="kc">None</span> 
+        <span class="c1">#training/testing set split</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Xtrain</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ytrain</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">()</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">Xtest</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ytest</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">()</span> 
+        <span class="c1">#Parameters, grid and best model from GridSearch </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipe</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bestimputer</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Model.merge_y_variable"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.Model.merge_y_variable">[docs]</a>    <span class="k">def</span> <span class="nf">merge_y_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">queryfunc</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Runs the query for the y variable (given by `get_clean_y_query(y)`) and adds it as a column to the training set by joining via *frn_adjusted*&quot;&quot;&quot;</span>
+        <span class="n">ydata</span> <span class="o">=</span> <span class="n">queryfunc</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">training_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_data</span><span class="p">,</span> <span class="n">ydata</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;frn_adjusted&#39;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="Model.label_encode"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.Model.label_encode">[docs]</a>    <span class="k">def</span> <span class="nf">label_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the y class variable in the format sklearn needs to run the model, as well as the `LabelEncoder` used&quot;&quot;&quot;</span>
+        <span class="n">le</span> <span class="o">=</span> <span class="n">preprocessing</span><span class="o">.</span><span class="n">LabelEncoder</span><span class="p">()</span>
+        <span class="n">le</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">le</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">),</span> <span class="n">le</span>
+
+<div class="viewcode-block" id="Model.training_setup"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.Model.training_setup">[docs]</a>    <span class="k">def</span> <span class="nf">training_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prepares the feature set and y variable for sklearn modeling&quot;&quot;&quot;</span>
+        <span class="n">yquery</span> <span class="o">=</span> <span class="n">get_clean_y_query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">yvar</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">merge_y_variable</span><span class="p">(</span><span class="n">get_table_from_db</span><span class="p">,</span> <span class="n">yquery</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="n">HOST</span><span class="p">,</span> <span class="n">USER</span><span class="p">,</span> <span class="n">PASSWORD</span><span class="p">,</span> <span class="n">DB</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">yvar</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_type</span><span class="o">==</span><span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">le</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_encode</span><span class="p">()</span>
+            <span class="n">unique</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="s2">&quot;Category counts for &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">yvar</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span>
+            <span class="nb">print</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">((</span><span class="n">unique</span><span class="p">,</span> <span class="n">counts</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">training_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_data</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;frn_adjusted&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">yvar</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="Model.get_train_test_split"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.Model.get_train_test_split">[docs]</a>    <span class="k">def</span> <span class="nf">get_train_test_split</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Splits the training features X and y variable according to the proportion p. Returns 4 elements (X and y for training &amp; testing)&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_test</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">train_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="Model.build_pipe"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.Model.build_pipe">[docs]</a>    <span class="k">def</span> <span class="nf">build_pipe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Primary method: prepares the training and test sets and model pipeline to input into GridSearch. Optional input attributes (keyword arguments) correspond to model parameter ARRAYS to test via GridSearch </span>
+<span class="sd">        and depend on the model chosen. *Please refer to the `sklearn` docs for your desired model type, e.g. http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier)*.</span>
+<span class="sd">        * Example for *model = &#39;randomforest&#39;*: `build_pipe(n_estimators = [50,100,300], class_weight = [&#39;balanced&#39;])`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">training_setup</span><span class="p">()</span><span class="o">.</span><span class="n">get_train_test_split</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;logisticregression&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pipe</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([(</span><span class="s2">&quot;imputer&quot;</span><span class="p">,</span> <span class="n">Imputer</span><span class="p">()),</span> <span class="p">(</span><span class="s2">&quot;estimator&quot;</span><span class="p">,</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">7</span><span class="p">))])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;decisiontree&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_type</span><span class="o">==</span><span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pipe</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([(</span><span class="s2">&quot;imputer&quot;</span><span class="p">,</span> <span class="n">Imputer</span><span class="p">()),</span> <span class="p">(</span><span class="s2">&quot;estimator&quot;</span><span class="p">,</span> <span class="n">DecisionTreeClassifier</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">7</span><span class="p">))])</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">pipe</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([(</span><span class="s2">&quot;imputer&quot;</span><span class="p">,</span> <span class="n">Imputer</span><span class="p">()),</span> <span class="p">(</span><span class="s2">&quot;estimator&quot;</span><span class="p">,</span> <span class="n">DecisionTreeRegressor</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">7</span><span class="p">))])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;randomforest&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_type</span><span class="o">==</span><span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pipe</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([(</span><span class="s2">&quot;imputer&quot;</span><span class="p">,</span> <span class="n">Imputer</span><span class="p">()),</span> <span class="p">(</span><span class="s2">&quot;estimator&quot;</span><span class="p">,</span> <span class="n">RandomForestClassifier</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">7</span><span class="p">))])</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">pipe</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([(</span><span class="s2">&quot;imputer&quot;</span><span class="p">,</span> <span class="n">Imputer</span><span class="p">()),</span> <span class="p">(</span><span class="s2">&quot;estimator&quot;</span><span class="p">,</span> <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">7</span><span class="p">))])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;gradientboosting&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_type</span><span class="o">==</span><span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pipe</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([(</span><span class="s2">&quot;imputer&quot;</span><span class="p">,</span> <span class="n">Imputer</span><span class="p">()),</span> <span class="p">(</span><span class="s2">&quot;estimator&quot;</span><span class="p">,</span> <span class="n">GradientBoostingClassifier</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">7</span><span class="p">))])</span>
+            <span class="k">else</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">pipe</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">([(</span><span class="s2">&quot;imputer&quot;</span><span class="p">,</span> <span class="n">Imputer</span><span class="p">()),</span> <span class="p">(</span><span class="s2">&quot;estimator&quot;</span><span class="p">,</span> <span class="n">GradientBoostingRegressor</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">7</span><span class="p">))])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="s1">&#39;estimator__&#39;</span> <span class="o">+</span> <span class="n">name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;imputer__strategy&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">imputer_strategy</span><span class="p">})</span>
+</div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="Model.print_score"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.Model.print_score">[docs]</a>    <span class="k">def</span> <span class="nf">print_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        prints accuracy and confusion matrices for a given classification model that indicate performance; also returns the confusion matrices. </span>
+<span class="sd">        If regression model, just prints the MSE</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;expand_frame_repr&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">cms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sets</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span><span class="s1">&#39;test&#39;</span><span class="p">]:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;X_&#39;</span> <span class="o">+</span> <span class="n">sets</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;y_&#39;</span> <span class="o">+</span> <span class="n">sets</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span>
+            <span class="nb">print</span> <span class="s2">&quot;Result for: &quot;</span> <span class="o">+</span> <span class="n">sets</span>
+            <span class="n">y_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_type</span><span class="o">==</span><span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+                <span class="n">cm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">crosstab</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">le</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">le</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">y_pred</span><span class="p">),</span> <span class="n">rownames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;True&#39;</span><span class="p">],</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Predicted&#39;</span><span class="p">],</span> <span class="n">margins</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="nb">print</span> <span class="n">cm</span>
+                <span class="n">cms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">cms</span>
+
+<div class="viewcode-block" id="Model.print_feature_importances"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.Model.print_feature_importances">[docs]</a>    <span class="k">def</span> <span class="nf">print_feature_importances</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        prints feature importances for a given model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tuples</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_train</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span><span class="o">.</span><span class="n">feature_importances_</span><span class="p">))</span>
+        <span class="n">feature_importances</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tuples</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Feature&#39;</span><span class="p">,</span><span class="s1">&#39;Importance&#39;</span><span class="p">])</span></div>
+        <span class="nb">print</span> <span class="n">feature_importances</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;Importance&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Model.fit"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.Model.fit">[docs]</a>    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Primary method: fit the model specified in `model_setup()` via GridSearch. Input attributes correspond to the inputs to GridSearchCV (http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html). </span>
+<span class="sd">        Note only the 3 listed below are applicable (rest are set implicitly):</span>
+<span class="sd">        * **cv**: integer number of folds to use for cross validation (optional, default = 3)</span>
+<span class="sd">        * **scoring**: metric to be optimized for (optional, default = &#39;accuracy&#39;)</span>
+<span class="sd">        * **verbose**: integer indicating how much output you want to see from GridSearch (optional, default = 3)</span>
+<span class="sd">        * Example: `fit(cv=4,verbose=6)`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cv</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cv&#39;</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">scoring</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scoring&#39;</span><span class="p">,</span><span class="s1">&#39;accuracy&#39;</span><span class="p">)</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">GridSearchCV</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">cv</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="n">scoring</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">grid</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_train</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">grid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bestimputer</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">best_estimator_</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">print_feature_importances</span><span class="p">()</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">print_score</span><span class="p">()</span>
+
+
+
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sierra Costanza, Jamie Barnes, Adrianna Boghozian.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
