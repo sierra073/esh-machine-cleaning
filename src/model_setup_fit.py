@@ -28,9 +28,9 @@ DB_PRIS2017 = os.environ.get("DB_PRIS2017")
 
 def get_table_from_db(query_src, type, HOST, USER, PASSWORD, DB):
     """Creates a pandas dataframe from a query to a Postgres database.
-    * **sql_file**: input the name of the sql file as a string, e.g. 'get_raw_data.sql'
-    * **type**: what for the query is in, 'string' or 'file'
-    * **HOST,USER,PASSWORD,DB**: strings of your Postgres database credentials
+        * **sql_file**: input the name of the sql file as a string, e.g. 'get_raw_data.sql'
+        * **type**: what for the query is in, 'string' or 'file'
+        * **HOST,USER,PASSWORD,DB**: strings of your Postgres database credentials
     """
     cwd = os.getcwd()
     os.chdir(cwd+'/sql')
@@ -124,7 +124,7 @@ class Model(object):
         self.bestmodel = None
 
     def merge_y_variable(self,queryfunc,*args,**kwargs):
-        """Runs the query for the y variable (given by ``get_clean_y_query(y)``) and adds it as a column to the training set by joining via *frn_adjusted*"""
+        """Runs the query for the y variable (given by ``get_clean_y_query(y,..)``) and adds it as a column to the training set by joining via *frn_adjusted*"""
         ydata = queryfunc(*args, **kwargs)
         self.training_data = pd.merge(self.training_data, ydata, on='frn_adjusted', how='inner')
         return self
