@@ -157,7 +157,7 @@
 <em class="property">class </em><code class="descclassname">preprocess_transformed.</code><code class="descname">PreprocessTransformed</code><span class="sig-paren">(</span><em>df</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_transformed.html#PreprocessTransformed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_transformed.PreprocessTransformed" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="preprocess_raw.html#preprocess_raw.PreprocessRaw" title="preprocess_raw.PreprocessRaw"><code class="xref py py-class docutils literal notranslate"><span class="pre">preprocess_raw.PreprocessRaw</span></code></a></p>
 <p>A raw dataset (coming from frns and frn_line_items tables), <em>as well as additional fields from the pristine line items table</em> that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.
-Inherits the <cite>PreprocessRaw</cite> class.</p>
+Inherits the <code class="docutils literal notranslate"><span class="pre">PreprocessRaw</span></code> class.</p>
 <dl class="method">
 <dt id="preprocess_transformed.PreprocessTransformed.treat_tough_string_vars">
 <code class="descname">treat_tough_string_vars</code><span class="sig-paren">(</span><em>col</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_transformed.html#PreprocessTransformed.treat_tough_string_vars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_transformed.PreprocessTransformed.treat_tough_string_vars" title="Permalink to this definition">¶</a></dt>
@@ -174,7 +174,7 @@ Ex) for num_lines there are values such as “1.0”, “1”, “Unknown”, �
 <dl class="method">
 <dt id="preprocess_transformed.PreprocessTransformed.remove_drops_transformed">
 <code class="descname">remove_drops_transformed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_transformed.html#PreprocessTransformed.remove_drops_transformed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_transformed.PreprocessTransformed.remove_drops_transformed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the raw cost, charges and service provider columns and keeps the transformed pristine ones.</p>
+<dd><p>Removes the raw cost, charges and service provider columns (and keeps the transformed pristine ones), as well as some columns in Jamie’s table.</p>
 </dd></dl>
 
 <dl class="method">
@@ -191,7 +191,7 @@ Ex) for num_lines there are values such as “1.0”, “1”, “Unknown”, �
 <dl class="method">
 <dt id="preprocess_transformed.PreprocessTransformed.applyall_transformed">
 <code class="descname">applyall_transformed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_transformed.html#PreprocessTransformed.applyall_transformed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_transformed.PreprocessTransformed.applyall_transformed" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply all functions to a <cite>PreprocessTransformed</cite> dataset to preprocess the raw + transformed features.</p>
+<dd><p>Apply all functions to a <code class="docutils literal notranslate"><span class="pre">PreprocessTransformed</span></code> dataset to preprocess the raw + transformed features.</p>
 </dd></dl>
 
 </dd></dl>

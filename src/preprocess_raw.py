@@ -8,7 +8,7 @@ class PreprocessRaw(object):
     Input Attributes:
         * **df**: the dataset (mandatory - other variables are optional)
         * **verbose**: whether or not to print relevant information for each method applied (default: False)
-        * **max_categories**: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 9)
+        * **max_categories**: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 12)
         * **null_threshold**: value between 0 and 1 representing the minimum percent NULL any column should be (default: 0.74)
         * **corr_threshold**: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (default: 0.9)
     """
@@ -17,7 +17,8 @@ class PreprocessRaw(object):
     ## dropping purpose because it's redefined in the SQL code
     drop_cols = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number','establishing_fcc_form470', 'user_entered_establishing_fcc_form470','line_item', 
     'award_date', 'expiration_date', 'contract_expiry_date', 'service_start_date','model','contract_number', 'restriction_citation', 'other_manufacture', 
-    'download_speed','download_speed_units','upload_speed','upload_speed_units','burstable_speed','burstable_speed_units','purpose', 'source_of_matching_funds']
+    'download_speed','download_speed_units','upload_speed','upload_speed_units','burstable_speed','burstable_speed_units','purpose', 'source_of_matching_funds',
+    'doing_business_as','reporting_name','billed_entity_name','contact_email','funding_request_nickname','narrative','type_of_product']
 
     """declare the columns that are yes/no"""
     yn_cols = ['connection_supports_school_library_or_nif', 'includes_voluntary_extensions', 'basic_firewall_protection', 'based_on_state_master_contract',
@@ -26,13 +27,12 @@ class PreprocessRaw(object):
     """declare the columns that don't need the float conversion"""
     cat_cols = ['pricing_confidentiality', 'based_on_state_master_contract', 'lease_or_non_purchase_agreement', 'based_on_multiple_award_schedule',  
     'was_fcc_form470_posted', 'connection_supports_school_library_or_nif' ,'connected_directly_to_school_library_or_nif','basic_firewall_protection','includes_voluntary_extensions','pricing_confidentiality_type',
-    'fiber_type','connection_used_by','fiber_sub_type','purpose','unit','function','postal_cd','type_of_product','service_provider_name','billed_entity_name',
-    'funding_request_nickname','narrative','contact_email','frn_previous_year_exists']
+    'fiber_type','connection_used_by','fiber_sub_type','purpose','unit','function','postal_cd','frn_previous_year_exists']
 
     def __init__(self, df, **kwargs):
         self.df = df
         self.verbose = kwargs.get('verbose',False)
-        self.max_categories = kwargs.get('max_categories',9) 
+        self.max_categories = kwargs.get('max_categories',12) 
         self.null_threshold = kwargs.get('null_threshold',.74) 
         self.corr_threshold = kwargs.get('corr_threshold',.9) 
 
@@ -83,7 +83,7 @@ class PreprocessRaw(object):
         return dups  
 
     def remove_column_duplicates(self):
-        """Removes the columns that have duplicates (as determined by `duplicate_columns()`).
+        """Removes the columns that have duplicates (as determined by ``duplicate_columns()``).
         Also removes columns that have the same name as other columns in case they aren't caught by the above."""
         dups = self.duplicate_columns()
         self.df = self.df.drop(dups, axis=1)
@@ -104,7 +104,7 @@ class PreprocessRaw(object):
         
         for i in self.df.columns:
             vals = self.df[i]    
-            if self.df[i].dtype == 'O':
+            if vals.dtype == 'O':
                 try:
                     most_frequent = Counter(vals[vals != None].tolist()).most_common(1)
                     uniq = vals.nunique()
@@ -222,7 +222,7 @@ class PreprocessRaw(object):
         return self
 
     def convert_dummies_raw(self):
-        """Convert the `PreprocessRaw` class categorical variables to dummies"""
+        """Convert the ``PreprocessRaw`` class categorical variables to dummies"""
         s = set(self.__class__.yn_cols)
         cat_cols_no_bool = [x for x in self.__class__.cat_cols if (x in self.df.columns) and (x not in s)]
         self.convert_dummies(cat_cols_no_bool)
@@ -244,7 +244,6 @@ class PreprocessRaw(object):
         data_sub = self.df.loc[:, self.df.dtypes == float]
         #create a dict of the float columns and their number of nulls
         nnull_dict = data_sub.isnull().sum(axis=0).to_dict()
-        print(nnull_dict)
 
         corr_matrix = data_sub.corr()
         for i in range(len(corr_matrix.columns)):
@@ -266,7 +265,6 @@ class PreprocessRaw(object):
                             print("Dropped " + colname + " due to high correlation with " + othercolname)
 
     def applyall_raw(self):
-        """Apply all functions to a `PreprocessRaw` dataset to preprocess the raw features."""
+        """Apply all functions to a ``PreprocessRaw`` dataset to preprocess the raw features."""
         self.remove_row_duplicates().remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().remove_correlated_raw()
-
         return self

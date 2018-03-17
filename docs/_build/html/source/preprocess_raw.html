@@ -86,10 +86,7 @@
             
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">preprocess_raw module</a><ul>
-<li><a class="reference internal" href="#examples">Examples</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#">preprocess_raw module</a></li>
 </ul>
 </div>
             
@@ -165,14 +162,14 @@ Input Attributes:</p>
 <div><ul class="simple">
 <li><strong>df</strong>: the dataset (mandatory - other variables are optional)</li>
 <li><strong>verbose</strong>: whether or not to print relevant information for each method applied (default: False)</li>
-<li><strong>max_categories</strong>: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 9)</li>
+<li><strong>max_categories</strong>: the maximum cardinality of a categorical variable allowed for making that variable into dummy variables (apart from postal_cd) (default: 12)</li>
 <li><strong>null_threshold</strong>: value between 0 and 1 representing the minimum percent NULL any column should be (default: 0.74)</li>
 <li><strong>corr_threshold</strong>: value between 0 and 1 representing the maximum absolute correlation to be allowed between any pair of variables (default: 0.9)</li>
 </ul>
 </div></blockquote>
 <dl class="attribute">
 <dt id="preprocess_raw.PreprocessRaw.drop_cols">
-<code class="descname">drop_cols</code><em class="property"> = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number', 'establishing_fcc_form470', 'user_entered_establishing_fcc_form470', 'line_item', 'award_date', 'expiration_date', 'contract_expiry_date', 'service_start_date', 'model', 'contract_number', 'restriction_citation', 'other_manufacture', 'download_speed', 'download_speed_units', 'upload_speed', 'upload_speed_units', 'burstable_speed', 'burstable_speed_units', 'purpose', 'source_of_matching_funds']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.drop_cols" title="Permalink to this definition">¶</a></dt>
+<code class="descname">drop_cols</code><em class="property"> = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number', 'establishing_fcc_form470', 'user_entered_establishing_fcc_form470', 'line_item', 'award_date', 'expiration_date', 'contract_expiry_date', 'service_start_date', 'model', 'contract_number', 'restriction_citation', 'other_manufacture', 'download_speed', 'download_speed_units', 'upload_speed', 'upload_speed_units', 'burstable_speed', 'burstable_speed_units', 'purpose', 'source_of_matching_funds', 'doing_business_as', 'reporting_name', 'billed_entity_name', 'contact_email', 'funding_request_nickname', 'narrative', 'type_of_product']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.drop_cols" title="Permalink to this definition">¶</a></dt>
 <dd><p>declare the columns that are yes/no</p>
 </dd></dl>
 
@@ -184,7 +181,7 @@ Input Attributes:</p>
 
 <dl class="attribute">
 <dt id="preprocess_raw.PreprocessRaw.cat_cols">
-<code class="descname">cat_cols</code><em class="property"> = ['pricing_confidentiality', 'based_on_state_master_contract', 'lease_or_non_purchase_agreement', 'based_on_multiple_award_schedule', 'was_fcc_form470_posted', 'connection_supports_school_library_or_nif', 'connected_directly_to_school_library_or_nif', 'basic_firewall_protection', 'includes_voluntary_extensions', 'pricing_confidentiality_type', 'fiber_type', 'connection_used_by', 'fiber_sub_type', 'purpose', 'unit', 'function', 'postal_cd', 'type_of_product', 'service_provider_name', 'billed_entity_name', 'funding_request_nickname', 'narrative', 'contact_email', 'frn_previous_year_exists']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.cat_cols" title="Permalink to this definition">¶</a></dt>
+<code class="descname">cat_cols</code><em class="property"> = ['pricing_confidentiality', 'based_on_state_master_contract', 'lease_or_non_purchase_agreement', 'based_on_multiple_award_schedule', 'was_fcc_form470_posted', 'connection_supports_school_library_or_nif', 'connected_directly_to_school_library_or_nif', 'basic_firewall_protection', 'includes_voluntary_extensions', 'pricing_confidentiality_type', 'fiber_type', 'connection_used_by', 'fiber_sub_type', 'purpose', 'unit', 'function', 'postal_cd', 'frn_previous_year_exists']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.cat_cols" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -213,7 +210,7 @@ Input Attributes:</p>
 <dl class="method">
 <dt id="preprocess_raw.PreprocessRaw.remove_column_duplicates">
 <code class="descname">remove_column_duplicates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.remove_column_duplicates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.remove_column_duplicates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the columns that have duplicates (as determined by <cite>duplicate_columns()</cite>).
+<dd><p>Removes the columns that have duplicates (as determined by <code class="docutils literal notranslate"><span class="pre">duplicate_columns()</span></code>).
 Also removes columns that have the same name as other columns in case they aren’t caught by the above.</p>
 </dd></dl>
 
@@ -276,7 +273,7 @@ Since there are more float variables than categorical/string variables, it takes
 <dl class="method">
 <dt id="preprocess_raw.PreprocessRaw.convert_dummies_raw">
 <code class="descname">convert_dummies_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.convert_dummies_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.convert_dummies_raw" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert the <cite>PreprocessRaw</cite> class categorical variables to dummies</p>
+<dd><p>Convert the <code class="docutils literal notranslate"><span class="pre">PreprocessRaw</span></code> class categorical variables to dummies</p>
 </dd></dl>
 
 <dl class="method">
@@ -293,28 +290,11 @@ Since there are more float variables than categorical/string variables, it takes
 <dl class="method">
 <dt id="preprocess_raw.PreprocessRaw.applyall_raw">
 <code class="descname">applyall_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.applyall_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.applyall_raw" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply all functions to a <cite>PreprocessRaw</cite> dataset to preprocess the raw features.</p>
+<dd><p>Apply all functions to a <code class="docutils literal notranslate"><span class="pre">PreprocessRaw</span></code> dataset to preprocess the raw features.</p>
 </dd></dl>
 
 </dd></dl>
 
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<p>Below are some examples for how to use this module in isolation, but please see the example starter script on GitHub. Assumes you have a pandas dataframe <cite>data</cite> to start with. <cite>var_yn</cite> is an arbitrary Yes/No variable, and <cite>var_cat1</cite> and <cite>var_cat2</cite> are arbitrary categorical variables in the below examples.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cleanraw</span> <span class="o">=</span> <span class="n">PreprocessRaw</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Summary of data&quot;</span><span class="p">)</span>
-<span class="n">cleanraw</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
-
-<span class="n">cleanraw</span><span class="o">.</span><span class="n">convert_floats</span><span class="p">([</span><span class="s1">&#39;var_cat1&#39;</span><span class="p">,</span><span class="s1">&#39;var_cat2&#39;</span><span class="p">])</span>
-<span class="n">cleanraw</span><span class="o">.</span><span class="n">convert_yn</span><span class="p">(</span><span class="s1">&#39;var_yn&#39;</span><span class="p">)</span>
-<span class="n">cleanraw</span><span class="o">.</span><span class="n">convert_dummies</span><span class="p">([</span><span class="s1">&#39;var_cat1&#39;</span><span class="p">,</span><span class="s1">&#39;var_cat2&#39;</span><span class="p">])</span>
-
-<span class="n">cleanraw</span><span class="o">.</span><span class="n">applyall_raw</span><span class="p">()</span>
-
-<span class="n">final_data</span> <span class="o">=</span> <span class="n">cleanraw</span><span class="o">.</span><span class="n">getdata</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
 </div>
 
 

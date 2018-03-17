@@ -1,0 +1,511 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>model_optimization &mdash; Machine Cleaning 2018 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="Machine Cleaning 2018 0.1 documentation" href="../index.html"/>
+        <link rel="up" title="Module code" href="index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Machine Cleaning 2018
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Machine Cleaning 2018</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Module code</a> &raquo;</li>
+        
+      <li>model_optimization</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for model_optimization</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">precision_recall_fscore_support</span><span class="p">,</span> <span class="n">roc_auc_score</span><span class="p">,</span> <span class="n">roc_curve</span><span class="p">,</span> <span class="n">auc</span><span class="p">,</span> <span class="n">mean_squared_error</span>
+<span class="kn">from</span> <span class="nn">sklearn.feature_selection</span> <span class="k">import</span> <span class="n">SelectFromModel</span>
+<span class="kn">from</span> <span class="nn">model_setup_fit</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">psycopg2.extensions</span> <span class="k">import</span> <span class="n">AsIs</span>
+<span class="kn">from</span> <span class="nn">psycopg2.extras</span> <span class="k">import</span> <span class="n">Json</span><span class="p">,</span> <span class="n">DictCursor</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="sd">&quot;&quot;&quot;ML Staging credentials&quot;&quot;&quot;</span>
+<span class="k">global</span> <span class="n">ML_HOST</span><span class="p">,</span> <span class="n">ML_USER</span><span class="p">,</span> <span class="n">ML_PASSWORD</span><span class="p">,</span> <span class="n">ML_DB</span>
+<span class="n">ML_HOST</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ML_HOST&quot;</span><span class="p">)</span>
+<span class="n">ML_USER</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ML_USER&quot;</span><span class="p">)</span>
+<span class="n">ML_PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ML_PASSWORD&quot;</span><span class="p">)</span>
+<span class="n">ML_DB</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ML_DB&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ModelOptimizer"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.ModelOptimizer">[docs]</a><span class="k">class</span> <span class="nc">ModelOptimizer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class to optimize a ``model_setup_fit.Model`` model via feature elimination with a user-specified strategy and store the final model, feature list and results.</span>
+<span class="sd">    Input Attributes: </span>
+<span class="sd">        * **model_fit_obj**: An instance of the ``model_setup_fit.Model`` class that has been fit (i.e. has a ``bestmodel`` attribute other than *None*), mandatory.</span>
+<span class="sd">        * **strategy**: Feature elimination testing strategy, mandatory. Options are one of: *[&#39;importance&#39;,&#39;manual&#39;,&#39;both&#39;]*</span>
+<span class="sd">            * *&#39;importance&#39;*:  For each feature importance value ``v`` of each variable in ascending order, test each subset of features with importance &gt;= ``v``, </span>
+<span class="sd">            starting with all features and ending with the subset with the most important feature. </span>
+<span class="sd">            * *&#39;manual&#39;*: Eliminate the features specified in **drop_features** only</span>
+<span class="sd">            * *&#39;both&#39;*: Eliminate the features specified in **drop_features** AND those with an importance value &gt;= **threshold**. </span>
+<span class="sd">            Note, must supply a values for both **drop_features** and **threshold** if using this strategy.</span>
+<span class="sd">        * **drop_features**: A list of column names of feature(s) to test elimination of, optional.</span>
+<span class="sd">        * **threshold**: If given, we only use the subset of features with an importance value &gt;= **threshold** for all strategies.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_fit_obj</span><span class="p">,</span> <span class="n">strategy</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span> <span class="o">=</span> <span class="n">strategy</span>
+        <span class="k">if</span> <span class="n">strategy</span><span class="o">==</span><span class="s1">&#39;manual&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;drop_features&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="s2">&quot;Error: need to provide at least one feature to drop&quot;</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">strategy</span><span class="o">==</span><span class="s1">&#39;both&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;drop_features&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s1">&#39;threshold&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="s2">&quot;Error: need to provide a an importance threshold and at least one feature to drop&quot;</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_features</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;drop_features&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;threshold&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="n">model_fit_obj</span><span class="o">.</span><span class="n">X_train</span><span class="o">.</span><span class="n">columns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yvar</span> <span class="o">=</span> <span class="n">model_fit_obj</span><span class="o">.</span><span class="n">yvar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model_fit_obj</span><span class="o">.</span><span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classification_type</span> <span class="o">=</span> <span class="n">model_fit_obj</span><span class="o">.</span><span class="n">classification_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model_fit_obj</span><span class="o">.</span><span class="n">bestmodel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bestimputer</span> <span class="o">=</span> <span class="n">model_fit_obj</span><span class="o">.</span><span class="n">bestimputer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X_train</span> <span class="o">=</span> <span class="n">model_fit_obj</span><span class="o">.</span><span class="n">X_train</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X_test</span> <span class="o">=</span> <span class="n">model_fit_obj</span><span class="o">.</span><span class="n">X_test</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span> <span class="o">=</span> <span class="n">model_fit_obj</span><span class="o">.</span><span class="n">y_train</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_test</span> <span class="o">=</span> <span class="n">model_fit_obj</span><span class="o">.</span><span class="n">y_test</span>
+
+<div class="viewcode-block" id="ModelOptimizer.getfeatures"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.ModelOptimizer.getfeatures">[docs]</a>    <span class="k">def</span> <span class="nf">getfeatures</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">features</span>
+
+<div class="viewcode-block" id="ModelOptimizer.eliminate_importance"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.ModelOptimizer.eliminate_importance">[docs]</a>    <span class="k">def</span> <span class="nf">eliminate_importance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Eliminates features by variable importance. If given a threshold, removes all variables an importance value less than the threshold.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">imputer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bestimputer</span>
+        <span class="n">best_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span>
+        <span class="n">starting_X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_train</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+        <span class="n">starting_Xtest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_test</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">features</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+        <span class="n">Xtrain</span> <span class="o">=</span> <span class="n">imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">starting_X</span><span class="p">)</span>
+        <span class="n">Xtrain</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">starting_X</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">starting_X</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="n">Xtest</span> <span class="o">=</span> <span class="n">imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">starting_Xtest</span><span class="p">)</span>
+        <span class="n">Xtest</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">Xtest</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">starting_Xtest</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">starting_Xtest</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Fit model using each importance as a threshold</span>
+            <span class="n">thresholds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span><span class="o">.</span><span class="n">feature_importances_</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">thresholds</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">thresh</span> <span class="ow">in</span> <span class="n">thresholds</span><span class="p">:</span>
+            <span class="c1"># select features using threshold</span>
+            <span class="n">selection</span> <span class="o">=</span> <span class="n">SelectFromModel</span><span class="p">(</span><span class="n">best_model</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">thresh</span><span class="p">)</span>
+            <span class="n">select_X_train</span> <span class="o">=</span> <span class="n">selection</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">)</span>
+
+            <span class="c1"># train model</span>
+            <span class="n">selection_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span>
+            <span class="n">selection_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">select_X_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">)</span>
+            <span class="c1"># eval model</span>
+            <span class="n">select_X_test</span> <span class="o">=</span> <span class="n">selection</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">Xtest</span><span class="p">)</span>
+            <span class="n">y_pred</span> <span class="o">=</span> <span class="n">selection_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">select_X_test</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_type</span><span class="o">==</span><span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+                <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thresh=</span><span class="si">%.8f</span><span class="s2">, n=</span><span class="si">%d</span><span class="s2">, Accuracy: </span><span class="si">%.2f%%</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">select_X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">accuracy</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mse</span> <span class="o">=</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thresh=</span><span class="si">%.8f</span><span class="s2">, n=</span><span class="si">%d</span><span class="s2">, MSE: </span><span class="si">%.2f%%</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">thresh</span><span class="p">,</span> <span class="n">select_X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">mse</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">thresh</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="n">starting_X</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">selection</span><span class="o">.</span><span class="n">get_support</span><span class="p">()]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span> <span class="o">=</span> <span class="n">selection_model</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">X_train</span> <span class="o">=</span> <span class="n">select_X_train</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">X_test</span> <span class="o">=</span> <span class="n">select_X_test</span>
+
+<div class="viewcode-block" id="ModelOptimizer.eliminate_manual"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.ModelOptimizer.eliminate_manual">[docs]</a>    <span class="k">def</span> <span class="nf">eliminate_manual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Eliminates features manually if supplied in **drop_features**</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">imputer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bestimputer</span>
+        <span class="n">Xtrain</span> <span class="o">=</span> <span class="n">imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_train</span><span class="p">)</span>
+        <span class="n">Xtrain</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">X_train</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">X_train</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="n">Xtest</span> <span class="o">=</span> <span class="n">imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_test</span><span class="p">)</span>
+        <span class="n">Xtest</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">Xtest</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">X_test</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">X_test</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="n">select_X_train</span> <span class="o">=</span> <span class="n">Xtrain</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drop_features</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># train model</span>
+        <span class="n">selection_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span>
+        <span class="n">selection_model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">select_X_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">)</span>
+        <span class="c1"># eval model</span>
+        <span class="n">select_X_test</span> <span class="o">=</span> <span class="n">Xtest</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drop_features</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">y_pred</span> <span class="o">=</span> <span class="n">selection_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">select_X_test</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">classification_type</span><span class="o">==</span><span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+            <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;n=</span><span class="si">%d</span><span class="s2">, Accuracy: </span><span class="si">%.2f%%</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">accuracy</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mse</span> <span class="o">=</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_test</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;n=</span><span class="si">%d</span><span class="s2">, MSE: </span><span class="si">%.2f%%</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">select_X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">mse</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">features</span> <span class="o">=</span> <span class="n">select_X_train</span><span class="o">.</span><span class="n">columns</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span> <span class="o">=</span> <span class="n">selection_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X_train</span> <span class="o">=</span> <span class="n">select_X_train</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X_test</span> <span class="o">=</span> <span class="n">select_X_test</span>
+
+<div class="viewcode-block" id="ModelOptimizer.optimize"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.ModelOptimizer.optimize">[docs]</a>    <span class="k">def</span> <span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Primary method: performs feature elimination using the strategy supplied</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span><span class="o">==</span><span class="s1">&#39;importance&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eliminate_importance</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">strategy</span><span class="o">==</span><span class="s1">&#39;manual&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eliminate_manual</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eliminate_manual</span><span class="p">()</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eliminate_importance</span><span class="p">()</span>
+
+<div class="viewcode-block" id="get_columns_containing"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.get_columns_containing">[docs]</a><span class="k">def</span> <span class="nf">get_columns_containing</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Obtains the column(s) of a dataframe that start with the string &#39;col&#39; and returns the list of column names</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">col_list</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">col_list</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">col</span><span class="p">):</span>
+        <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">cols</span>
+
+<div class="viewcode-block" id="generate_id"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.generate_id">[docs]</a><span class="k">def</span> <span class="nf">generate_id</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to obtain the model id for a model (refer to Wiki for reference)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;lookup/id_value_lookup.json&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="n">id_value_lookup</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+    <span class="n">id_array</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">model_obj</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">id_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">id_value_lookup</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">][</span><span class="n">model_obj</span><span class="o">.</span><span class="n">model</span><span class="p">]))</span>
+        <span class="n">id_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">id_value_lookup</span><span class="p">[</span><span class="s1">&#39;imputer_strategy&#39;</span><span class="p">][</span><span class="n">model_obj</span><span class="o">.</span><span class="n">bestimputer</span><span class="o">.</span><span class="n">strategy</span><span class="p">]))</span>
+        <span class="n">id_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">id_value_lookup</span><span class="p">[</span><span class="s1">&#39;yvar&#39;</span><span class="p">][</span><span class="n">model_obj</span><span class="o">.</span><span class="n">yvar</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">id_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">id_value_lookup</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">][</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">]]))</span>
+        <span class="n">id_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">id_value_lookup</span><span class="p">[</span><span class="s1">&#39;imputer_strategy&#39;</span><span class="p">][</span><span class="s1">&#39;none&#39;</span><span class="p">]))</span>
+        <span class="n">id_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">id_value_lookup</span><span class="p">[</span><span class="s1">&#39;yvar&#39;</span><span class="p">][</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;yvar&#39;</span><span class="p">]]))</span>
+
+
+    <span class="c1">#increment the max id</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;select max(dig4) as max_4dig from ( </span>
+<span class="s2">    select model_id, model_id::integer % 10 as dig4 </span>
+<span class="s2">    from dm.ml_model_results_lookup </span>
+<span class="s2">    where left(model_id,3) = &#39;&quot;&quot;&quot;</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">id_array</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&quot;&quot;&#39;) t;&quot;&quot;&quot;</span>
+
+    <span class="n">max_data</span> <span class="o">=</span> <span class="n">get_table_from_db</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="s1">&#39;string&#39;</span><span class="p">,</span> <span class="n">ML_HOST</span><span class="p">,</span> <span class="n">ML_USER</span><span class="p">,</span> <span class="n">ML_PASSWORD</span><span class="p">,</span> <span class="n">ML_DB</span><span class="p">)</span>
+    <span class="n">id_array</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">max_data</span><span class="p">[</span><span class="s1">&#39;max_4dig&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">max_data</span><span class="p">[</span><span class="s1">&#39;max_4dig&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;1&#39;</span><span class="p">)</span>
+
+    <span class="n">model_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">id_array</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">model_id</span>
+
+<div class="viewcode-block" id="build_scoresdict"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.build_scoresdict">[docs]</a><span class="k">def</span> <span class="nf">build_scoresdict</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to build a dictionary of model scores for the training and testing sets.</span>
+<span class="sd">    Scores in the dictionary include accuracy, precision, recall and mean squared error.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">best_imputer</span> <span class="o">=</span> <span class="n">model_obj</span><span class="o">.</span><span class="n">bestimputer</span>
+    <span class="n">best_model</span> <span class="o">=</span> <span class="n">model_obj</span><span class="o">.</span><span class="n">bestmodel</span>
+    <span class="k">if</span> <span class="n">model_obj</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">sets</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span><span class="s1">&#39;test&#39;</span><span class="p">]:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span> <span class="s1">&#39;X_&#39;</span> <span class="o">+</span> <span class="n">sets</span><span class="p">)</span>
+            <span class="c1">#apply the best imputer strategy</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">best_imputer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span> <span class="s1">&#39;y_&#39;</span> <span class="o">+</span> <span class="n">sets</span><span class="p">)</span>
+
+            <span class="n">y_pred</span> <span class="o">=</span> <span class="n">best_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> 
+
+            <span class="k">if</span> <span class="n">model_obj</span><span class="o">.</span><span class="n">classification_type</span> <span class="o">==</span> <span class="s1">&#39;classification&#39;</span><span class="p">:</span>
+                <span class="n">accuracy</span> <span class="o">=</span> <span class="n">accuracy_score</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+                <span class="n">precision</span><span class="p">,</span> <span class="n">recall</span><span class="p">,</span> <span class="n">f_score</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">precision_recall_fscore_support</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">average</span> <span class="o">=</span><span class="s1">&#39;weighted&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">accuracy</span> <span class="o">=</span> <span class="n">precision</span> <span class="o">=</span> <span class="n">recall</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">sets</span><span class="o">==</span><span class="s1">&#39;train&#39;</span><span class="p">:</span>
+                <span class="n">train_scores</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;accuracy_train&#39;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
+                                <span class="s1">&#39;precision_train&#39;</span> <span class="p">:</span> <span class="n">precision</span><span class="p">,</span>
+                                <span class="s1">&#39;recall_train&#39;</span><span class="p">:</span> <span class="n">recall</span><span class="p">,</span>
+                                <span class="s1">&#39;mse_train&#39;</span><span class="p">:</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)}</span>
+            <span class="k">if</span> <span class="n">sets</span><span class="o">==</span><span class="s1">&#39;test&#39;</span><span class="p">:</span>
+                <span class="n">test_scores</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;accuracy_test&#39;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
+                               <span class="s1">&#39;precision_test&#39;</span> <span class="p">:</span> <span class="n">precision</span><span class="p">,</span>
+                               <span class="s1">&#39;recall_test&#39;</span><span class="p">:</span> <span class="n">recall</span><span class="p">,</span>
+                               <span class="s1">&#39;mse_test&#39;</span><span class="p">:</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span> <span class="p">}</span>
+
+        <span class="n">scoresdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">train_scores</span><span class="p">,</span><span class="o">**</span><span class="n">test_scores</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">scoresdict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;accuracy_train&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;accuracy_train&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span>
+                      <span class="s1">&#39;precision_train&#39;</span> <span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision_train&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span>
+                      <span class="s1">&#39;recall_train&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;recall_train&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span>
+                      <span class="s1">&#39;mse_train&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mse_train&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span>
+                      <span class="s1">&#39;accuracy_test&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;accuracy_test&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span>
+                      <span class="s1">&#39;precision_test&#39;</span> <span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision_test&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span>
+                      <span class="s1">&#39;recall_test&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;recall_test&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span>
+                      <span class="s1">&#39;mse_test&#39;</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mse_test&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)}</span>
+</div>
+    <span class="k">return</span> <span class="n">scoresdict</span>
+
+<div class="viewcode-block" id="build_resultsdict"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.build_resultsdict">[docs]</a><span class="k">def</span> <span class="nf">build_resultsdict</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span><span class="n">features</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to build a dictionary of the scores obtained in ``build_scoresdict()`` as well as other info to store in the results database table such as the ``model_id`` and model parameters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">model_id</span> <span class="o">=</span> <span class="n">generate_id</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">resultsdict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;model_id&#39;</span><span class="p">:</span> <span class="n">model_id</span><span class="p">,</span>
+    <span class="s1">&#39;y&#39;</span> <span class="p">:</span> <span class="n">model_obj</span><span class="o">.</span><span class="n">yvar</span> <span class="k">if</span> <span class="n">model_obj</span> <span class="o">!=</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;yvar&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;nfeatures&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">),</span>
+    <span class="s1">&#39;imputer&#39;</span><span class="p">:</span> <span class="n">model_obj</span><span class="o">.</span><span class="n">bestimputer</span><span class="o">.</span><span class="n">strategy</span> <span class="k">if</span> <span class="n">model_obj</span> <span class="o">!=</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;classifier&#39;</span><span class="p">:</span> <span class="n">model_obj</span><span class="o">.</span><span class="n">model</span> <span class="k">if</span> <span class="n">model_obj</span> <span class="o">!=</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;narrative_R&#39;</span><span class="p">,</span> 
+    <span class="s1">&#39;classifier_params&#39;</span><span class="p">:</span> <span class="n">model_obj</span><span class="o">.</span><span class="n">bestmodel</span><span class="o">.</span><span class="n">get_params</span><span class="p">()</span> <span class="k">if</span> <span class="n">model_obj</span> <span class="o">!=</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">narrative_R</span><span class="o">=</span><span class="kc">None</span><span class="p">)}</span>
+
+    <span class="n">scoresdict</span> <span class="o">=</span> <span class="n">build_scoresdict</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">resultsdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">resultsdict</span><span class="p">,</span><span class="o">**</span><span class="n">scoresdict</span><span class="p">)</span>
+</div>
+    <span class="k">return</span> <span class="n">resultsdict</span>
+
+<div class="viewcode-block" id="output_results"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.output_results">[docs]</a><span class="k">def</span> <span class="nf">output_results</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span><span class="n">features</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Obtains all model performance information (and other relevant stats) and populates the table ``dm.ml_model_results_lookup`` in the ``ML Staging 2018`` database.</span>
+<span class="sd">    Also stores final model object and feature list in GitHub via pickle. Model objects are compressed into zip files.</span>
+<span class="sd">    Input Attributes: </span>
+<span class="sd">        * **model_obj**: An instance of the ``model_setup_fit.Model`` class OR the ``model_soptimization.ModelOptimizer`` class, mandatory.</span>
+<span class="sd">        * **features**: list of final feature names associated with the final model, mandatory. </span>
+<span class="sd">        * **optional keyword arguments**: to be supplied ONLY IF you want to manually populate ``dm.ml_model_results_lookup`` after running a model outside of Python.</span>
+<span class="sd">            * *model*:  Type of model used, e.g. *&#39;logisticregression&#39;*</span>
+<span class="sd">            * *yyar*: y variable predicted, e.g. *&#39;bandwidth_in_mbps&#39;*</span>
+<span class="sd">            * *accuracy_train...*: performance stats on the training set (refer to `dm.ml_model_results_lookup`` for all the possible options)</span>
+<span class="sd">            * *accuracy_test...*: same as above for the test set</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">featurepath</span> <span class="o">=</span> <span class="s1">&#39;objects/feature_cols/&#39;</span> 
+    <span class="n">modelpath</span> <span class="o">=</span> <span class="s1">&#39;objects/models/&#39;</span> 
+
+    <span class="n">resultsdict</span> <span class="o">=</span> <span class="n">build_resultsdict</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span><span class="n">features</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1">#write out features</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">featurepath</span> <span class="o">+</span> <span class="s1">&#39;features_&#39;</span> <span class="o">+</span> <span class="n">resultsdict</span><span class="p">[</span><span class="s1">&#39;model_id&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.pkl&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span><span class="n">f</span><span class="p">)</span>
+    <span class="c1">#write out model</span>
+    <span class="n">model_pickle</span> <span class="o">=</span> <span class="n">modelpath</span> <span class="o">+</span> <span class="s1">&#39;model_&#39;</span> <span class="o">+</span> <span class="n">resultsdict</span><span class="p">[</span><span class="s1">&#39;model_id&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.pkl&#39;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">model_pickle</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">model_obj</span><span class="o">.</span><span class="n">bestmodel</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="nb">zip</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">model_pickle</span> <span class="o">+</span> <span class="s1">&#39;.zip&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+    <span class="nb">zip</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">model_pickle</span><span class="p">,</span> <span class="n">compress_type</span><span class="o">=</span><span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span><span class="p">)</span>
+    <span class="nb">zip</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">model_pickle</span><span class="p">)</span>
+
+    <span class="c1">#insert into database</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="n">resultsdict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">resultsdict</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">]</span>
+
+    <span class="n">hstore_dict</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">values</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">values</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">dict</span><span class="p">]</span> 
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">c</span><span class="o">!=</span> <span class="s1">&#39;classifier_params&#39;</span><span class="p">]</span>
+
+    <span class="n">conn_ml</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span> <span class="n">host</span><span class="o">=</span><span class="n">ML_HOST</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">ML_USER</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">ML_PASSWORD</span><span class="p">,</span> <span class="n">dbname</span><span class="o">=</span><span class="n">ML_DB</span> <span class="p">)</span>
+    <span class="n">cur_ml</span> <span class="o">=</span> <span class="n">conn_ml</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">cursor_factory</span><span class="o">=</span><span class="n">DictCursor</span><span class="p">)</span>
+
+    <span class="n">insert_statement</span> <span class="o">=</span> <span class="s1">&#39;insert into dm.ml_model_results_lookup (</span><span class="si">%s</span><span class="s1">) values </span><span class="si">%s</span><span class="s1">;&#39;</span>
+    <span class="n">cur_ml</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">insert_statement</span><span class="p">,</span> <span class="p">(</span><span class="n">AsIs</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">)),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">values</span><span class="p">)))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Results inserted&quot;</span><span class="p">)</span>
+    <span class="n">insert_statement_hstore</span> <span class="o">=</span> <span class="s2">&quot;update dm.ml_model_results_lookup set classifier_params = (</span><span class="si">%s</span><span class="s2">) where model_id = &#39;&quot;</span> <span class="o">+</span> <span class="n">resultsdict</span><span class="p">[</span><span class="s1">&#39;model_id&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39;;&quot;</span>
+    <span class="n">cur_ml</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">insert_statement_hstore</span><span class="p">,</span> <span class="p">[</span><span class="n">Json</span><span class="p">(</span><span class="n">hstore_dict</span><span class="p">)])</span>
+
+    <span class="n">cur_ml</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">conn_ml</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">conn_ml</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;All results inserted&quot;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sierra Costanza, Jamie Barnes, Adrianna Boghozian.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

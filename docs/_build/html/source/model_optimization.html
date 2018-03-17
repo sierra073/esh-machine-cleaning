@@ -1,0 +1,323 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>model_optimization module &mdash; Machine Cleaning 2018 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="Machine Cleaning 2018 0.1 documentation" href="../index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Machine Cleaning 2018
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">model_optimization module</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Machine Cleaning 2018</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>model_optimization module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/source/model_optimization.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-model_optimization">
+<span id="model-optimization-module"></span><h1>model_optimization module<a class="headerlink" href="#module-model_optimization" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="model_optimization.ModelOptimizer">
+<em class="property">class </em><code class="descclassname">model_optimization.</code><code class="descname">ModelOptimizer</code><span class="sig-paren">(</span><em>model_fit_obj</em>, <em>strategy</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#ModelOptimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.ModelOptimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to optimize a <code class="docutils literal notranslate"><span class="pre">model_setup_fit.Model</span></code> model via feature elimination with a user-specified strategy and store the final model, feature list and results.
+Input Attributes:</p>
+<blockquote>
+<div><ul>
+<li><p class="first"><strong>model_fit_obj</strong>: An instance of the <code class="docutils literal notranslate"><span class="pre">model_setup_fit.Model</span></code> class that has been fit (i.e. has a <code class="docutils literal notranslate"><span class="pre">bestmodel</span></code> attribute other than <em>None</em>), mandatory.</p>
+</li>
+<li><dl class="first docutils">
+<dt><strong>strategy</strong>: Feature elimination testing strategy, mandatory. Options are one of: <em>[‘importance’,’manual’,’both’]</em></dt>
+<dd><ul class="first simple">
+<li><em>‘importance’</em>:  For each feature importance value <code class="docutils literal notranslate"><span class="pre">v</span></code> of each variable in ascending order, test each subset of features with importance &gt;= <code class="docutils literal notranslate"><span class="pre">v</span></code>,</li>
+</ul>
+<p class="last">starting with all features and ending with the subset with the most important feature.
+* <em>‘manual’</em>: Eliminate the features specified in <strong>drop_features</strong> only
+* <em>‘both’</em>: Eliminate the features specified in <strong>drop_features</strong> AND those with an importance value &gt;= <strong>threshold</strong>.
+Note, must supply a values for both <strong>drop_features</strong> and <strong>threshold</strong> if using this strategy.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first"><strong>drop_features</strong>: A list of column names of feature(s) to test elimination of, optional.</p>
+</li>
+<li><p class="first"><strong>threshold</strong>: If given, we only use the subset of features with an importance value &gt;= <strong>threshold</strong> for all strategies.</p>
+</li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="model_optimization.ModelOptimizer.getfeatures">
+<code class="descname">getfeatures</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#ModelOptimizer.getfeatures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.ModelOptimizer.getfeatures" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="model_optimization.ModelOptimizer.eliminate_importance">
+<code class="descname">eliminate_importance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#ModelOptimizer.eliminate_importance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.ModelOptimizer.eliminate_importance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Eliminates features by variable importance. If given a threshold, removes all variables an importance value less than the threshold.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model_optimization.ModelOptimizer.eliminate_manual">
+<code class="descname">eliminate_manual</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#ModelOptimizer.eliminate_manual"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.ModelOptimizer.eliminate_manual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Eliminates features manually if supplied in <strong>drop_features</strong></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model_optimization.ModelOptimizer.optimize">
+<code class="descname">optimize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#ModelOptimizer.optimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.ModelOptimizer.optimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Primary method: performs feature elimination using the strategy supplied</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="model_optimization.get_columns_containing">
+<code class="descclassname">model_optimization.</code><code class="descname">get_columns_containing</code><span class="sig-paren">(</span><em>data</em>, <em>col</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#get_columns_containing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.get_columns_containing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtains the column(s) of a dataframe that start with the string ‘col’ and returns the list of column names</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="model_optimization.generate_id">
+<code class="descclassname">model_optimization.</code><code class="descname">generate_id</code><span class="sig-paren">(</span><em>model_obj</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#generate_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.generate_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to obtain the model id for a model (refer to Wiki for reference)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="model_optimization.build_scoresdict">
+<code class="descclassname">model_optimization.</code><code class="descname">build_scoresdict</code><span class="sig-paren">(</span><em>model_obj</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#build_scoresdict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.build_scoresdict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to build a dictionary of model scores for the training and testing sets.
+Scores in the dictionary include accuracy, precision, recall and mean squared error.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="model_optimization.build_resultsdict">
+<code class="descclassname">model_optimization.</code><code class="descname">build_resultsdict</code><span class="sig-paren">(</span><em>model_obj</em>, <em>features</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#build_resultsdict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.build_resultsdict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to build a dictionary of the scores obtained in <code class="docutils literal notranslate"><span class="pre">build_scoresdict()</span></code> as well as other info to store in the results database table such as the <code class="docutils literal notranslate"><span class="pre">model_id</span></code> and model parameters</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="model_optimization.output_results">
+<code class="descclassname">model_optimization.</code><code class="descname">output_results</code><span class="sig-paren">(</span><em>model_obj</em>, <em>features</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#output_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.output_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtains all model performance information (and other relevant stats) and populates the table <code class="docutils literal notranslate"><span class="pre">dm.ml_model_results_lookup</span></code> in the <code class="docutils literal notranslate"><span class="pre">ML</span> <span class="pre">Staging</span> <span class="pre">2018</span></code> database.
+Also stores final model object and feature list in GitHub via pickle. Model objects are compressed into zip files.
+Input Attributes:</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>model_obj</strong>: An instance of the <code class="docutils literal notranslate"><span class="pre">model_setup_fit.Model</span></code> class OR the <code class="docutils literal notranslate"><span class="pre">model_soptimization.ModelOptimizer</span></code> class, mandatory.</li>
+<li><strong>features</strong>: list of final feature names associated with the final model, mandatory.</li>
+<li><dl class="first docutils">
+<dt><strong>optional keyword arguments</strong>: to be supplied ONLY IF you want to manually populate <code class="docutils literal notranslate"><span class="pre">dm.ml_model_results_lookup</span></code> after running a model outside of Python.</dt>
+<dd><ul class="first last">
+<li><em>model</em>:  Type of model used, e.g. <em>‘logisticregression’</em></li>
+<li><em>yyar</em>: y variable predicted, e.g. <em>‘bandwidth_in_mbps’</em></li>
+<li><em>accuracy_train…</em>: performance stats on the training set (refer to <cite>dm.ml_model_results_lookup`</cite> for all the possible options)</li>
+<li><em>accuracy_test…</em>: same as above for the test set</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Sierra Costanza, Jamie Barnes, Adrianna Boghozian.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

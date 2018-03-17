@@ -13,18 +13,24 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.metrics import accuracy_score, mean_squared_error
 
-"""Onyx credentials"""
+"""Necessary database credentials"""
 global HOST, USER, PASSWORD, DB
 HOST = os.environ.get("HOST")
 USER = os.environ.get("USER")
 PASSWORD = os.environ.get("PASSWORD")
 DB = os.environ.get("DB")
 
+global HOST_PRIS2017, USER_PRIS2017, PASSWORD_PRIS2017, DB_PRIS2017
+HOST_PRIS2017 = os.environ.get("HOST_PRIS2017")
+USER_PRIS2017 = os.environ.get("USER_PRIS2017")
+PASSWORD_PRIS2017 = os.environ.get("PASSWORD_PRIS2017")
+DB_PRIS2017 = os.environ.get("DB_PRIS2017")
+
 def get_table_from_db(query_src, type, HOST, USER, PASSWORD, DB):
-    """Creates a pandas dataframe from a query to a Postgres database.  
-        * **sql_file**: input the name of the sql file as a string, e.g. 'get_raw_data.sql'
-        * **type**: what for the query is in, 'string' or 'file'
-        * **HOST,USER,PASSWORD,DB**: strings of your Postgres database credentials
+    """Creates a pandas dataframe from a query to a Postgres database.
+    * **sql_file**: input the name of the sql file as a string, e.g. 'get_raw_data.sql'
+    * **type**: what for the query is in, 'string' or 'file'
+    * **HOST,USER,PASSWORD,DB**: strings of your Postgres database credentials
     """
     cwd = os.getcwd()
     os.chdir(cwd+'/sql')
@@ -74,26 +80,28 @@ def drop_column_containing(data, col):
 
     return data
 
-def get_clean_y_query(y):
-    """Returns a query in the form of the string to obtain a specific variable y from Onyx services_received"""
+def get_clean_y_query(y,query_file):
+    """Returns a query in the form of the string to obtain a specific variable y using the query in *query_file* (e.g.: *'get_yvar_onyx.sql'*)"""
     cwd = os.getcwd()
     os.chdir(cwd+'/sql')
 
-    f = open('get_yvar_onyx.sql', 'r')
+    f = open(query_file, 'r')
     query = f.read()
-    query = query.replace('yvar',y)
+
+    if y != 'purpose_connect_category':
+        query = query.replace('yvar',y)
 
     os.chdir(cwd)
     return query
 
 class Model(object):
-    """Class to initialize a model to fit to given training data and y variable, and fit a model using GridSearch cross valudation
-    Input Attributes: all are mandatory except for *p*
+    """Class to initialize a model to fit to given training data and y variable, and fit a model using GridSearch cross validation.
+    Input Attributes: all are mandatory except for **p**:
         * **training_data**: the training dataset without the (clean) y variable
         * **yvar**: column name of y variable to predict
-        * **model**: the type of model to fit. Options are one of: *['logisticregression','decisiontree','randomforest','gradientboosting']*
+        * **model**: the type of model to fit. Options are one of: *['logisticregression', 'decisiontree', 'randomforest', 'gradientboosting']*
         * **classification_type**: *'classification'* or *'regression'*
-        * **imputer_strategy**: how to handle missing values -- must be an array. Example 1: *imputer_strategy = ['mean']*. Example 2: *imputer_strategy = ['mean','median','most_frequent']*
+        * **imputer_strategy**: how to handle missing values -- must be an array. Example 1: *imputer_strategy = ['mean']*. Example 2: *imputer_strategy = ['mean', 'median', 'most_frequent']*
         * **p**: proportion of the training dataset to set for training; number between 0 and 1 (optional, default = 0.8)
     """
 
@@ -108,11 +116,6 @@ class Model(object):
         self.y = pd.Series() 
         #label encoder used for y variable
         self.le = None 
-        #training/testing set split
-        self.Xtrain = pd.DataFrame()
-        self.ytrain = pd.Series() 
-        self.Xtest = pd.DataFrame()
-        self.ytest = pd.Series() 
         #Parameters, grid and best model from GridSearch 
         self.pipe = None
         self.params = None
@@ -121,20 +124,27 @@ class Model(object):
         self.bestmodel = None
 
     def merge_y_variable(self,queryfunc,*args,**kwargs):
-        """Runs the query for the y variable (given by `get_clean_y_query(y)`) and adds it as a column to the training set by joining via *frn_adjusted*"""
+        """Runs the query for the y variable (given by ``get_clean_y_query(y)``) and adds it as a column to the training set by joining via *frn_adjusted*"""
         ydata = queryfunc(*args, **kwargs)
         self.training_data = pd.merge(self.training_data, ydata, on='frn_adjusted', how='inner')
         return self
 
     def label_encode(self):
-        """Returns the y class variable in the format sklearn needs to run the model, as well as the `LabelEncoder` used"""
+        """Returns the y class variable in the format ``sklearn`` needs to run the model, as well as the ``LabelEncoder`` used"""
         le = preprocessing.LabelEncoder()
         le.fit(self.y)
         return le.transform(self.y), le
 
     def training_setup(self):
-        """Prepares the feature set and y variable for sklearn modeling"""
-        yquery = get_clean_y_query(self.yvar)
+        """Prepares the feature set and y variable for ``sklearn`` modeling"""
+        if self.yvar == 'purpose_connect_category':
+            yquery = get_clean_y_query(self.yvar,'purpose_connectcat_onyx.sql')
+        else:
+            yquery = get_clean_y_query(self.yvar,'get_yvar_onyx.sql')
+
+        # rename pristine/dirty y variable column in training data if it exists, attach clean y variable
+        if self.yvar in self.training_data.columns:
+            self.training_data.columns = self.training_data.columns.str.replace(self.yvar, self.yvar+'_pre')
         self.merge_y_variable(get_table_from_db, yquery, 'string', HOST, USER, PASSWORD, DB)
         self.y = self.training_data[self.yvar]
 
@@ -155,8 +165,8 @@ class Model(object):
 
     def build_pipe(self,**kwargs):
         """Primary method: prepares the training and test sets and model pipeline to input into GridSearch. Optional input attributes (keyword arguments) correspond to model parameter ARRAYS to test via GridSearch 
-        and depend on the model chosen. *Please refer to the `sklearn` docs for your desired model type, e.g. http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier)*.
-        * Example for *model = 'randomforest'*: `build_pipe(n_estimators = [50,100,300], class_weight = ['balanced'])`
+        and depend on the model chosen. Please refer to the ``sklearn`` docs for your desired model type, e.g. ``sklearn.ensemble.RandomForestClassifier``.
+            * Example for *model = 'randomforest'*: ``build_pipe(n_estimators = [50,100,300], class_weight = ['balanced'])``
         """
         self.training_setup().get_train_test_split()
 
@@ -188,16 +198,13 @@ class Model(object):
 
     def print_score(self):
         """
-        prints accuracy and confusion matrices for a given classification model that indicate performance; also returns the confusion matrices. 
+        prints accuracy and confusion matrices for a given classification model that indicate performance.
         If regression model, just prints the MSE
         """
         pd.set_option('expand_frame_repr', False)
-        cms = []
         for sets in ['train','test']:
             X = getattr(self, 'X_' + sets)
-            print X.shape
             y = getattr(self, 'y_' + sets)
-            print y.shape
             print "Result for: " + sets
             y_pred = self.grid.predict(X)
 
@@ -205,10 +212,8 @@ class Model(object):
                 print accuracy_score(y, y_pred)
                 cm = pd.crosstab(self.le.inverse_transform(y), self.le.inverse_transform(y_pred), rownames=['True'], colnames=['Predicted'], margins=True)
                 print cm
-                cms.append(cm)
             else:
                 print mean_squared_error(y, y_pred)
-        return cms
 
     def print_feature_importances(self):
         """
@@ -219,12 +224,12 @@ class Model(object):
         print feature_importances.sort_values('Importance', ascending=False)
 
     def fit(self,**kwargs):
-        """Primary method: fit the model specified in `model_setup()` via GridSearch. Input attributes correspond to the inputs to GridSearchCV (http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html). 
+        """Primary method: fit the model specified in ``model_setup()`` via GridSearch. Input attributes correspond to the inputs to GridSearchCV (http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html). 
         Note only the 3 listed below are applicable (rest are set implicitly):
-        * **cv**: integer number of folds to use for cross validation (optional, default = 3)
-        * **scoring**: metric to be optimized for (optional, default = 'accuracy')
-        * **verbose**: integer indicating how much output you want to see from GridSearch (optional, default = 3)
-        * Example: `fit(cv=4,verbose=6)`
+            * **cv**: integer number of folds to use for cross validation (optional, default = 3)
+            * **scoring**: metric to be optimized for (optional, default = 'accuracy')
+            * **verbose**: integer indicating how much output you want to see from GridSearch (optional, default = 3)
+            * Example: ``fit(cv=4,verbose=6)``
         """
         cv = kwargs.get('cv',3)
         scoring = kwargs.get('scoring','accuracy')

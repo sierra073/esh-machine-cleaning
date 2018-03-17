@@ -169,42 +169,42 @@
 
 <dl class="function">
 <dt id="model_setup_fit.get_clean_y_query">
-<code class="descclassname">model_setup_fit.</code><code class="descname">get_clean_y_query</code><span class="sig-paren">(</span><em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#get_clean_y_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.get_clean_y_query" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a query in the form of the string to obtain a specific variable y from Onyx services_received</p>
+<code class="descclassname">model_setup_fit.</code><code class="descname">get_clean_y_query</code><span class="sig-paren">(</span><em>y</em>, <em>query_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#get_clean_y_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.get_clean_y_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a query in the form of the string to obtain a specific variable y using the query in <em>query_file</em> (e.g.: <em>‘get_yvar_onyx.sql’</em>)</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="model_setup_fit.Model">
 <em class="property">class </em><code class="descclassname">model_setup_fit.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>training_data</em>, <em>yvar</em>, <em>model</em>, <em>classification_type</em>, <em>imputer_strategy</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Class to initialize a model to fit to given training data and y variable, and fit a model using GridSearch cross valudation
-Input Attributes: all are mandatory except for <em>p</em></p>
+<p>Class to initialize a model to fit to given training data and y variable, and fit a model using GridSearch cross validation.
+Input Attributes: all are mandatory except for <strong>p</strong>:</p>
 <blockquote>
 <div><ul class="simple">
 <li><strong>training_data</strong>: the training dataset without the (clean) y variable</li>
 <li><strong>yvar</strong>: column name of y variable to predict</li>
-<li><strong>model</strong>: the type of model to fit. Options are one of: <em>[‘logisticregression’,’decisiontree’,’randomforest’,’gradientboosting’]</em></li>
+<li><strong>model</strong>: the type of model to fit. Options are one of: <em>[‘logisticregression’, ‘decisiontree’, ‘randomforest’, ‘gradientboosting’]</em></li>
 <li><strong>classification_type</strong>: <em>‘classification’</em> or <em>‘regression’</em></li>
-<li><strong>imputer_strategy</strong>: how to handle missing values – must be an array. Example 1: <em>imputer_strategy = [‘mean’]</em>. Example 2: <em>imputer_strategy = [‘mean’,’median’,’most_frequent’]</em></li>
+<li><strong>imputer_strategy</strong>: how to handle missing values – must be an array. Example 1: <em>imputer_strategy = [‘mean’]</em>. Example 2: <em>imputer_strategy = [‘mean’, ‘median’, ‘most_frequent’]</em></li>
 <li><strong>p</strong>: proportion of the training dataset to set for training; number between 0 and 1 (optional, default = 0.8)</li>
 </ul>
 </div></blockquote>
 <dl class="method">
 <dt id="model_setup_fit.Model.merge_y_variable">
 <code class="descname">merge_y_variable</code><span class="sig-paren">(</span><em>queryfunc</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.merge_y_variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.merge_y_variable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Runs the query for the y variable (given by <cite>get_clean_y_query(y)</cite>) and adds it as a column to the training set by joining via <em>frn_adjusted</em></p>
+<dd><p>Runs the query for the y variable (given by <code class="docutils literal notranslate"><span class="pre">get_clean_y_query(y)</span></code>) and adds it as a column to the training set by joining via <em>frn_adjusted</em></p>
 </dd></dl>
 
 <dl class="method">
 <dt id="model_setup_fit.Model.label_encode">
 <code class="descname">label_encode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.label_encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.label_encode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the y class variable in the format sklearn needs to run the model, as well as the <cite>LabelEncoder</cite> used</p>
+<dd><p>Returns the y class variable in the format <code class="docutils literal notranslate"><span class="pre">sklearn</span></code> needs to run the model, as well as the <code class="docutils literal notranslate"><span class="pre">LabelEncoder</span></code> used</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="model_setup_fit.Model.training_setup">
 <code class="descname">training_setup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.training_setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.training_setup" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prepares the feature set and y variable for sklearn modeling</p>
+<dd><p>Prepares the feature set and y variable for <code class="docutils literal notranslate"><span class="pre">sklearn</span></code> modeling</p>
 </dd></dl>
 
 <dl class="method">
@@ -217,14 +217,18 @@ Input Attributes: all are mandatory except for <em>p</em></p>
 <dt id="model_setup_fit.Model.build_pipe">
 <code class="descname">build_pipe</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.build_pipe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.build_pipe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Primary method: prepares the training and test sets and model pipeline to input into GridSearch. Optional input attributes (keyword arguments) correspond to model parameter ARRAYS to test via GridSearch
-and depend on the model chosen. <em>Please refer to the `sklearn` docs for your desired model type, e.g. http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html#sklearn.ensemble.RandomForestClassifier)</em>.
-* Example for <em>model = ‘randomforest’</em>: <cite>build_pipe(n_estimators = [50,100,300], class_weight = [‘balanced’])</cite></p>
+and depend on the model chosen. Please refer to the <code class="docutils literal notranslate"><span class="pre">sklearn</span></code> docs for your desired model type, e.g. <code class="docutils literal notranslate"><span class="pre">sklearn.ensemble.RandomForestClassifier</span></code>.</p>
+<blockquote>
+<div><ul class="simple">
+<li>Example for <em>model = ‘randomforest’</em>: <code class="docutils literal notranslate"><span class="pre">build_pipe(n_estimators</span> <span class="pre">=</span> <span class="pre">[50,100,300],</span> <span class="pre">class_weight</span> <span class="pre">=</span> <span class="pre">['balanced'])</span></code></li>
+</ul>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">
 <dt id="model_setup_fit.Model.print_score">
 <code class="descname">print_score</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.print_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.print_score" title="Permalink to this definition">¶</a></dt>
-<dd><p>prints accuracy and confusion matrices for a given classification model that indicate performance; also returns the confusion matrices.
+<dd><p>prints accuracy and confusion matrices for a given classification model that indicate performance.
 If regression model, just prints the MSE</p>
 </dd></dl>
 
@@ -237,12 +241,16 @@ If regression model, just prints the MSE</p>
 <dl class="method">
 <dt id="model_setup_fit.Model.fit">
 <code class="descname">fit</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Primary method: fit the model specified in <cite>model_setup()</cite> via GridSearch. Input attributes correspond to the inputs to GridSearchCV (<a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html">http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html</a>).
-Note only the 3 listed below are applicable (rest are set implicitly):
-* <strong>cv</strong>: integer number of folds to use for cross validation (optional, default = 3)
-* <strong>scoring</strong>: metric to be optimized for (optional, default = ‘accuracy’)
-* <strong>verbose</strong>: integer indicating how much output you want to see from GridSearch (optional, default = 3)
-* Example: <cite>fit(cv=4,verbose=6)</cite></p>
+<dd><p>Primary method: fit the model specified in <code class="docutils literal notranslate"><span class="pre">model_setup()</span></code> via GridSearch. Input attributes correspond to the inputs to GridSearchCV (<a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html">http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html</a>).
+Note only the 3 listed below are applicable (rest are set implicitly):</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>cv</strong>: integer number of folds to use for cross validation (optional, default = 3)</li>
+<li><strong>scoring</strong>: metric to be optimized for (optional, default = ‘accuracy’)</li>
+<li><strong>verbose</strong>: integer indicating how much output you want to see from GridSearch (optional, default = 3)</li>
+<li>Example: <code class="docutils literal notranslate"><span class="pre">fit(cv=4,verbose=6)</span></code></li>
+</ul>
+</div></blockquote>
 </dd></dl>
 
 </dd></dl>
