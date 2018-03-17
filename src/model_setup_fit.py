@@ -28,8 +28,9 @@ DB_PRIS2017 = os.environ.get("DB_PRIS2017")
 
 def get_table_from_db(query_src, type, HOST, USER, PASSWORD, DB):
     """Creates a pandas dataframe from a query to a Postgres database.
-        * **sql_file**: input the name of the sql file as a string, e.g. 'get_raw_data.sql'
-        * **type**: what for the query is in, 'string' or 'file'
+    Input Attributes: all are mandatory 
+        * **query_src**: input the name of the sql file as a string, e.g. *'get_raw_data.sql'*, OR the query itself as a string.
+        * **type**: what form the query is in, 'string' or 'file'
         * **HOST,USER,PASSWORD,DB**: strings of your Postgres database credentials
     """
     cwd = os.getcwd()
