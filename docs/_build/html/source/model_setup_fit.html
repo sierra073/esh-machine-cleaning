@@ -156,9 +156,14 @@
 <dt id="model_setup_fit.get_table_from_db">
 <code class="descclassname">model_setup_fit.</code><code class="descname">get_table_from_db</code><span class="sig-paren">(</span><em>query_src</em>, <em>type</em>, <em>HOST</em>, <em>USER</em>, <em>PASSWORD</em>, <em>DB</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#get_table_from_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.get_table_from_db" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a pandas dataframe from a query to a Postgres database.
-* <strong>sql_file</strong>: input the name of the sql file as a string, e.g. ‘get_raw_data.sql’
-* <strong>type</strong>: what for the query is in, ‘string’ or ‘file’
-* <strong>HOST,USER,PASSWORD,DB</strong>: strings of your Postgres database credentials</p>
+Input Attributes: all are mandatory</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>query_src</strong>: input the name of the sql file as a string, e.g. <em>‘get_raw_data.sql’</em>, OR the query itself as a string.</li>
+<li><strong>type</strong>: what form the query is in, ‘string’ or ‘file’</li>
+<li><strong>HOST,USER,PASSWORD,DB</strong>: strings of your Postgres database credentials</li>
+</ul>
+</div></blockquote>
 </dd></dl>
 
 <dl class="function">

@@ -179,8 +179,9 @@
 
 <div class="viewcode-block" id="get_table_from_db"><a class="viewcode-back" href="../source/model_setup_fit.html#model_setup_fit.get_table_from_db">[docs]</a><span class="k">def</span> <span class="nf">get_table_from_db</span><span class="p">(</span><span class="n">query_src</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">HOST</span><span class="p">,</span> <span class="n">USER</span><span class="p">,</span> <span class="n">PASSWORD</span><span class="p">,</span> <span class="n">DB</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Creates a pandas dataframe from a query to a Postgres database.</span>
-<span class="sd">        * **sql_file**: input the name of the sql file as a string, e.g. &#39;get_raw_data.sql&#39;</span>
-<span class="sd">        * **type**: what for the query is in, &#39;string&#39; or &#39;file&#39;</span>
+<span class="sd">    Input Attributes: all are mandatory </span>
+<span class="sd">        * **query_src**: input the name of the sql file as a string, e.g. *&#39;get_raw_data.sql&#39;*, OR the query itself as a string.</span>
+<span class="sd">        * **type**: what form the query is in, &#39;string&#39; or &#39;file&#39;</span>
 <span class="sd">        * **HOST,USER,PASSWORD,DB**: strings of your Postgres database credentials</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
