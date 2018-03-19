@@ -249,7 +249,7 @@ def output_results(model_obj,features,**kwargs):
         * **optional keyword arguments**: to be supplied ONLY IF you want to manually populate ``dm.ml_model_results_lookup`` after running a model outside of Python.
             * *model*:  Type of model used, e.g. *'logisticregression'*
             * *yyar*: y variable predicted, e.g. *'bandwidth_in_mbps'*
-            * *accuracy_train...*: performance stats on the training set (refer to `dm.ml_model_results_lookup`` for all the possible options)
+            * *accuracy_train...*: performance stats on the training set (refer to ``dm.ml_model_results_lookup`` for all the possible options)
             * *accuracy_test...*: same as above for the test set
     """
     featurepath = 'objects/feature_cols/' 
