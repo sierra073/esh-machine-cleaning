@@ -225,7 +225,7 @@ class Model(object):
         print feature_importances.sort_values('Importance', ascending=False)
 
     def fit(self,**kwargs):
-        """Primary method: fit the model specified in ``model_setup()`` via GridSearch. Input attributes correspond to the inputs to GridSearchCV (http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html). 
+        """Primary method: fit the model specified in ``build_pipe()`` via GridSearch. Input attributes correspond to the inputs to GridSearchCV (http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html). 
         Note only the 3 listed below are applicable (rest are set implicitly):
             * **cv**: integer number of folds to use for cross validation (optional, default = 3)
             * **scoring**: metric to be optimized for (optional, default = 'accuracy')
