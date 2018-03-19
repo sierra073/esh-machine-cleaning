@@ -159,25 +159,20 @@
 <p>Class to optimize a <code class="docutils literal notranslate"><span class="pre">model_setup_fit.Model</span></code> model via feature elimination with a user-specified strategy and store the final model, feature list and results.
 Input Attributes:</p>
 <blockquote>
-<div><ul>
-<li><p class="first"><strong>model_fit_obj</strong>: An instance of the <code class="docutils literal notranslate"><span class="pre">model_setup_fit.Model</span></code> class that has been fit (i.e. has a <code class="docutils literal notranslate"><span class="pre">bestmodel</span></code> attribute other than <em>None</em>), mandatory.</p>
-</li>
+<div><ul class="simple">
+<li><strong>model_fit_obj</strong>: An instance of the <code class="docutils literal notranslate"><span class="pre">model_setup_fit.Model</span></code> class that has been fit (i.e. has a <code class="docutils literal notranslate"><span class="pre">bestmodel</span></code> attribute other than <em>None</em>), mandatory.</li>
 <li><dl class="first docutils">
 <dt><strong>strategy</strong>: Feature elimination testing strategy, mandatory. Options are one of: <em>[‘importance’,’manual’,’both’]</em></dt>
-<dd><ul class="first simple">
-<li><em>‘importance’</em>:  For each feature importance value <em>v</em> of each variable in ascending order, test each subset of features with importance &gt;= <em>v</em>,</li>
+<dd><ul class="first last">
+<li><em>‘importance’</em>:  For each feature importance value <em>v</em> of each variable in ascending order, test each subset of features with importance &gt;= <em>v</em>, starting with all features and ending with the subset with the most important feature.</li>
+<li><em>‘manual’</em>: Eliminate the features specified in <strong>drop_features</strong> only</li>
+<li><em>‘both’</em>: Eliminate the features specified in <strong>drop_features</strong> AND those with an importance value &gt;= <strong>threshold</strong>. Note, must supply a values for both <strong>drop_features</strong> and <strong>threshold</strong> if using this strategy.</li>
 </ul>
-<p class="last">starting with all features and ending with the subset with the most important feature.
-* <em>‘manual’</em>: Eliminate the features specified in <strong>drop_features</strong> only
-* <em>‘both’</em>: Eliminate the features specified in <strong>drop_features</strong> AND those with an importance value &gt;= <strong>threshold</strong>.
-Note, must supply a values for both <strong>drop_features</strong> and <strong>threshold</strong> if using this strategy.</p>
 </dd>
 </dl>
 </li>
-<li><p class="first"><strong>drop_features</strong>: A list of column names of feature(s) to test elimination of, optional.</p>
-</li>
-<li><p class="first"><strong>threshold</strong>: If given, we only use the subset of features with an importance value &gt;= <strong>threshold</strong> for all strategies.</p>
-</li>
+<li><strong>drop_features</strong>: A list of column names of feature(s) to test elimination of, optional.</li>
+<li><strong>threshold</strong>: If given, we only use the subset of features with an importance value &gt;= <strong>threshold</strong> for all strategies.</li>
 </ul>
 </div></blockquote>
 <dl class="method">

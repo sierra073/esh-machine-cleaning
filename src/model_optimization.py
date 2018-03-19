@@ -22,11 +22,9 @@ class ModelOptimizer(object):
     Input Attributes: 
         * **model_fit_obj**: An instance of the ``model_setup_fit.Model`` class that has been fit (i.e. has a ``bestmodel`` attribute other than *None*), mandatory.
         * **strategy**: Feature elimination testing strategy, mandatory. Options are one of: *['importance','manual','both']*
-            * *'importance'*:  For each feature importance value *v* of each variable in ascending order, test each subset of features with importance >= *v*, 
-            starting with all features and ending with the subset with the most important feature. 
+            * *'importance'*:  For each feature importance value *v* of each variable in ascending order, test each subset of features with importance >= *v*, starting with all features and ending with the subset with the most important feature. 
             * *'manual'*: Eliminate the features specified in **drop_features** only
-            * *'both'*: Eliminate the features specified in **drop_features** AND those with an importance value >= **threshold**. 
-            Note, must supply a values for both **drop_features** and **threshold** if using this strategy.
+            * *'both'*: Eliminate the features specified in **drop_features** AND those with an importance value >= **threshold**. Note, must supply a values for both **drop_features** and **threshold** if using this strategy.
         * **drop_features**: A list of column names of feature(s) to test elimination of, optional.
         * **threshold**: If given, we only use the subset of features with an importance value >= **threshold** for all strategies.
     """

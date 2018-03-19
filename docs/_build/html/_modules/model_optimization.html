@@ -173,11 +173,9 @@
 <span class="sd">    Input Attributes: </span>
 <span class="sd">        * **model_fit_obj**: An instance of the ``model_setup_fit.Model`` class that has been fit (i.e. has a ``bestmodel`` attribute other than *None*), mandatory.</span>
 <span class="sd">        * **strategy**: Feature elimination testing strategy, mandatory. Options are one of: *[&#39;importance&#39;,&#39;manual&#39;,&#39;both&#39;]*</span>
-<span class="sd">            * *&#39;importance&#39;*:  For each feature importance value *v* of each variable in ascending order, test each subset of features with importance &gt;= *v*, </span>
-<span class="sd">            starting with all features and ending with the subset with the most important feature. </span>
+<span class="sd">            * *&#39;importance&#39;*:  For each feature importance value *v* of each variable in ascending order, test each subset of features with importance &gt;= *v*, starting with all features and ending with the subset with the most important feature. </span>
 <span class="sd">            * *&#39;manual&#39;*: Eliminate the features specified in **drop_features** only</span>
-<span class="sd">            * *&#39;both&#39;*: Eliminate the features specified in **drop_features** AND those with an importance value &gt;= **threshold**. </span>
-<span class="sd">            Note, must supply a values for both **drop_features** and **threshold** if using this strategy.</span>
+<span class="sd">            * *&#39;both&#39;*: Eliminate the features specified in **drop_features** AND those with an importance value &gt;= **threshold**. Note, must supply a values for both **drop_features** and **threshold** if using this strategy.</span>
 <span class="sd">        * **drop_features**: A list of column names of feature(s) to test elimination of, optional.</span>
 <span class="sd">        * **threshold**: If given, we only use the subset of features with an importance value &gt;= **threshold** for all strategies.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
