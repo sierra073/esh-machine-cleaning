@@ -228,7 +228,7 @@ Scores in the dictionary include accuracy, precision, recall and mean squared er
 <dl class="function">
 <dt id="model_optimization.output_results">
 <code class="descclassname">model_optimization.</code><code class="descname">output_results</code><span class="sig-paren">(</span><em>model_obj</em>, <em>features</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#output_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.output_results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Obtains all model performance information (and other relevant stats) and populates the table <code class="docutils literal notranslate"><span class="pre">dm.ml_model_results_lookup</span></code> in the <code class="docutils literal notranslate"><span class="pre">ML</span> <span class="pre">Staging</span> <span class="pre">2018</span></code> database.
+<dd><p>Obtains all model performance information (and other relevant stats) and populates the table <code class="docutils literal notranslate"><span class="pre">dm.ml_model_results_lookup</span></code> in the <code class="docutils literal notranslate"><span class="pre">DAR</span> <span class="pre">Staging</span></code> database.
 Also stores final model object and feature list in GitHub via pickle. Model objects are compressed into zip files.
 Input Attributes:</p>
 <blockquote>
@@ -248,6 +248,13 @@ Input Attributes:</p>
 </li>
 </ul>
 </div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="model_optimization.attach_y_post_model">
+<code class="descclassname">model_optimization.</code><code class="descname">attach_y_post_model</code><span class="sig-paren">(</span><em>model_obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#attach_y_post_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.attach_y_post_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>After a final model is fit (using <code class="docutils literal notranslate"><span class="pre">Model</span></code> or <code class="docutils literal notranslate"><span class="pre">ModelOptimizer</span></code>), takes in an instance of either class and attaches back the y variable and its predicted value according to the model for post-prediction analysis.
+Outputs are the new feature matrices <em>X_train</em> and <em>X_test</em> with the 2 additional columns for the actual and predicted y variables.</p>
 </dd></dl>
 
 </div>
