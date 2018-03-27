@@ -227,7 +227,7 @@ Scores in the dictionary include accuracy, precision, recall and mean squared er
 
 <dl class="function">
 <dt id="model_optimization.output_results">
-<code class="descclassname">model_optimization.</code><code class="descname">output_results</code><span class="sig-paren">(</span><em>model_obj</em>, <em>features</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#output_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.output_results" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">model_optimization.</code><code class="descname">output_results</code><span class="sig-paren">(</span><em>model_obj</em>, <em>features</em>, <em>name</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_optimization.html#output_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_optimization.output_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Obtains all model performance information (and other relevant stats) and populates the table <code class="docutils literal notranslate"><span class="pre">dm.ml_model_results_lookup</span></code> in the <code class="docutils literal notranslate"><span class="pre">DAR</span> <span class="pre">Staging</span></code> database.
 Also stores final model object and feature list in GitHub via pickle. Model objects are compressed into zip files.
 Input Attributes:</p>
@@ -235,6 +235,7 @@ Input Attributes:</p>
 <div><ul class="simple">
 <li><strong>model_obj</strong>: An instance of the <code class="docutils literal notranslate"><span class="pre">model_setup_fit.Model</span></code> class OR the <code class="docutils literal notranslate"><span class="pre">model_soptimization.ModelOptimizer</span></code> class, mandatory.</li>
 <li><strong>features</strong>: list of final feature names associated with the final model, mandatory.</li>
+<li><strong>name</strong>: Your name (as a string), mandatory</li>
 <li><dl class="first docutils">
 <dt><strong>optional keyword arguments</strong>: to be supplied ONLY IF you want to manually populate <code class="docutils literal notranslate"><span class="pre">dm.ml_model_results_lookup</span></code> after running a model outside of Python.</dt>
 <dd><ul class="first last">

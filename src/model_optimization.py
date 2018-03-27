@@ -8,13 +8,14 @@ from psycopg2.extensions import AsIs
 from psycopg2.extras import Json, DictCursor
 import zipfile
 import copy
+from datetime import datetime
 
 """ML Staging credentials"""
-global ML_HOST, ML_USER, ML_PASSWORD, ML_DB
-ML_HOST = os.environ.get("ML_HOST")
-ML_USER = os.environ.get("ML_USER")
-ML_PASSWORD = os.environ.get("ML_PASSWORD")
-ML_DB = os.environ.get("ML_DB")
+global DAR_HOST, DAR_USER, DAR_PASSWORD, DAR_DB
+DAR_HOST = os.environ.get("DAR_HOST")
+DAR_USER = os.environ.get("DAR_USER")
+DAR_PASSWORD = os.environ.get("DAR_PASSWORD")
+DAR_DB = os.environ.get("DAR_DB")
 
 
 class ModelOptimizer(object):
@@ -43,6 +44,7 @@ class ModelOptimizer(object):
         self.yvar = model_fit_obj.yvar
         self.model = model_fit_obj.model
         self.classification_type = model_fit_obj.classification_type
+        self.le = model_fit_obj.le
         self.bestmodel = copy.deepcopy(model_fit_obj.bestmodel)
         self.bestimputer = model_fit_obj.bestimputer
         self.X_train = model_fit_obj.X_train
@@ -69,6 +71,7 @@ class ModelOptimizer(object):
         if self.threshold is None:
             # Fit model using each importance as a threshold
             thresholds = sorted(self.bestmodel.feature_importances_)
+            thresholds = [t for t in thresholds if t > 0.00000000]
         else:
             thresholds = [self.threshold]
 
@@ -172,7 +175,7 @@ def generate_id(model_obj,**kwargs):
     from dm.ml_model_results_lookup 
     where left(model_id,3) = '""" + ''.join(id_array) + """') t;"""
 
-    max_data = get_table_from_db(query, 'string', ML_HOST, ML_USER, ML_PASSWORD, ML_DB)
+    max_data = get_table_from_db(query, 'string', DAR_HOST, DAR_USER, DAR_PASSWORD, DAR_DB)
     id_array.append(str(max_data['max_4dig'].item() + 1) if (not max_data['max_4dig'].item() is None) else '1')
 
     model_id = ''.join(id_array)
@@ -240,12 +243,13 @@ def build_resultsdict(model_obj,features,**kwargs):
 
     return resultsdict
 
-def output_results(model_obj,features,**kwargs):
-    """Obtains all model performance information (and other relevant stats) and populates the table ``dm.ml_model_results_lookup`` in the ``ML Staging 2018`` database.
+def output_results(model_obj,features,name,**kwargs):
+    """Obtains all model performance information (and other relevant stats) and populates the table ``dm.ml_model_results_lookup`` in the ``DAR Staging`` database.
     Also stores final model object and feature list in GitHub via pickle. Model objects are compressed into zip files.
     Input Attributes: 
         * **model_obj**: An instance of the ``model_setup_fit.Model`` class OR the ``model_soptimization.ModelOptimizer`` class, mandatory.
         * **features**: list of final feature names associated with the final model, mandatory. 
+        * **name**: Your name (as a string), mandatory
         * **optional keyword arguments**: to be supplied ONLY IF you want to manually populate ``dm.ml_model_results_lookup`` after running a model outside of Python.
             * *model*:  Type of model used, e.g. *'logisticregression'*
             * *yyar*: y variable predicted, e.g. *'bandwidth_in_mbps'*
@@ -278,7 +282,7 @@ def output_results(model_obj,features,**kwargs):
     values = [val for val in values if type(val) != dict] 
     columns = [c for c in columns if c!= 'classifier_params']
 
-    conn_ml = psycopg2.connect( host=ML_HOST, user=ML_USER, password=ML_PASSWORD, dbname=ML_DB )
+    conn_ml = psycopg2.connect( host=DAR_HOST, user=DAR_USER, password=DAR_PASSWORD, dbname=DAR_DB )
     cur_ml = conn_ml.cursor(cursor_factory=DictCursor)
 
     insert_statement = 'insert into dm.ml_model_results_lookup (%s) values %s;'
@@ -286,8 +290,46 @@ def output_results(model_obj,features,**kwargs):
     print("Results inserted")
     insert_statement_hstore = "update dm.ml_model_results_lookup set classifier_params = (%s) where model_id = '" + resultsdict['model_id'] + "';"
     cur_ml.execute(insert_statement_hstore, [Json(hstore_dict)])
+    #insert name and date
+    cur_ml.execute("update dm.ml_model_results_lookup set name = '" + name + "' where model_id = '" + resultsdict['model_id'] + "';")
+    cur_ml.execute("update dm.ml_model_results_lookup set date = '" + str(pd.to_datetime(datetime.now()).date()) + "'::DATE where model_id = '" + resultsdict['model_id'] + "';")
 
     cur_ml.close()
     conn_ml.commit()
     conn_ml.close()
     print("All results inserted")
+
+def attach_y_post_model(model_obj):
+    """After a final model is fit (using ``Model`` or ``ModelOptimizer``), takes in an instance of either class and attaches back the y variable and its predicted value according to the model for post-prediction analysis.
+    Outputs are the new feature matrices *X_train* and *X_test* with the 2 additional columns for the actual and predicted y variables."""
+    best_imputer = model_obj.bestimputer
+    best_model = model_obj.bestmodel
+    new_X_train = new_X_test = pd.DataFrame()
+
+    for sets in ['train','test']:
+        X = getattr(model_obj, 'X_' + sets)
+        #apply the best imputer strategy
+        Xt = best_imputer.fit_transform(X)
+        y = getattr(model_obj, 'y_' + sets)
+        y_pred = best_model.predict(Xt) 
+        
+        if model_obj.yvar != 'fiber_binary' and model_obj.classification_type == 'classificiation':
+            Xf = pd.DataFrame(X).reset_index(drop=True)
+            yf = pd.Series(model_obj.le.inverse_transform(y)).reset_index(drop=True)
+            y_predf = pd.Series(model_obj.le.inverse_transform(y_pred)).reset_index(drop=True)
+            exec('new_X_' + sets + ' = pd.concat([Xf,yf,y_predf],axis=1)')
+        else:
+            Xf = pd.DataFrame(X).reset_index(drop=True)
+            yf = pd.Series(y).reset_index(drop=True)
+            y_predf = pd.Series(y_pred).reset_index(drop=True)
+            exec('new_X_' + sets + ' = pd.concat([Xf,yf,y_predf],axis=1)')        
+        
+        if isinstance(model_obj, Model):
+            cols = model_obj.training_data.columns.tolist()
+            cols = cols + ['y','y_pred']
+        else:
+            cols = model_obj.features.tolist() + ['y','y_pred']
+        
+        exec("new_X_" + sets + ".columns = cols")
+        
+    return new_X_train, new_X_test

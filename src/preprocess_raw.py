@@ -77,6 +77,7 @@ class PreprocessRaw(object):
             for i in range(lvs):
                 for j in range(i+1,lvs):
                     if vs[i] == vs[j]: 
+                        print str(ks[i]) + " duplicate with " + str(ks[j]) + ", dropping " + str(ks[i])
                         dups.append(ks[i])
                         break
 
@@ -210,7 +211,7 @@ class PreprocessRaw(object):
             #replace spaces and slashes with underscore
             self.df[col] = self.df[col].replace('\s+', '_',regex=True).replace('/', '_',regex=True)
             #check cardinality
-            if (self.df.groupby(col).size().reset_index().shape[0] <= self.max_categories) or (col == 'postal_cd'):
+            if (self.df.groupby(col).size().reset_index().shape[0] <= self.max_categories) or (col == 'postal_cd' or col=='connect_type'):
                 dummy_cols.append(col)
 
         dummy_cols_prefixed = [col.split('_', 1)[0] for col in dummy_cols]
@@ -262,7 +263,8 @@ class PreprocessRaw(object):
                     if colname in self.df.columns:
                         self.df = self.df.drop(colname, axis=1) # deleting the column from the dataset
                         if self.verbose == True:
-                            print("Dropped " + colname + " due to high correlation with " + othercolname)
+                            x = round(corr_matrix.iloc[i, j],3)
+                            print("Dropped " + colname + " due to " + str(x) + " correlation with " + othercolname)
 
     def applyall_raw(self):
         """Apply all functions to a ``PreprocessRaw`` dataset to preprocess the raw features."""

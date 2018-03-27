@@ -88,7 +88,8 @@ class PreprocessTransformed(PreprocessRaw):
                     if colname in self.df.columns:
                         self.df = self.df.drop(colname, axis=1) # deleting the column from the dataset
                         if self.verbose == True:
-                            print("Dropped " + colname + " due to high correlation with " + othercolname)
+                            x = round(corr_matrix.iloc[i, j],3)
+                            print("Dropped " + colname + " due to " + str(x) + " correlation with " + othercolname)
 
     def applyall_transformed(self):
         """Apply all functions to a ``PreprocessTransformed`` dataset to preprocess the raw + transformed features."""

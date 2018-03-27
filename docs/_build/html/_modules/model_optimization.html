@@ -159,6 +159,7 @@
 <span class="kn">from</span> <span class="nn">psycopg2.extras</span> <span class="k">import</span> <span class="n">Json</span><span class="p">,</span> <span class="n">DictCursor</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
 <span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
 
 <span class="sd">&quot;&quot;&quot;ML Staging credentials&quot;&quot;&quot;</span>
 <span class="k">global</span> <span class="n">DAR_HOST</span><span class="p">,</span> <span class="n">DAR_USER</span><span class="p">,</span> <span class="n">DAR_PASSWORD</span><span class="p">,</span> <span class="n">DAR_DB</span>
@@ -221,6 +222,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Fit model using each importance as a threshold</span>
             <span class="n">thresholds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bestmodel</span><span class="o">.</span><span class="n">feature_importances_</span><span class="p">)</span>
+            <span class="n">thresholds</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thresholds</span> <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="mf">0.00000000</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">thresholds</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">]</span>
 
@@ -392,12 +394,13 @@
 </div>
     <span class="k">return</span> <span class="n">resultsdict</span>
 
-<div class="viewcode-block" id="output_results"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.output_results">[docs]</a><span class="k">def</span> <span class="nf">output_results</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span><span class="n">features</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="output_results"><a class="viewcode-back" href="../source/model_optimization.html#model_optimization.output_results">[docs]</a><span class="k">def</span> <span class="nf">output_results</span><span class="p">(</span><span class="n">model_obj</span><span class="p">,</span><span class="n">features</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Obtains all model performance information (and other relevant stats) and populates the table ``dm.ml_model_results_lookup`` in the ``DAR Staging`` database.</span>
 <span class="sd">    Also stores final model object and feature list in GitHub via pickle. Model objects are compressed into zip files.</span>
 <span class="sd">    Input Attributes: </span>
 <span class="sd">        * **model_obj**: An instance of the ``model_setup_fit.Model`` class OR the ``model_soptimization.ModelOptimizer`` class, mandatory.</span>
 <span class="sd">        * **features**: list of final feature names associated with the final model, mandatory. </span>
+<span class="sd">        * **name**: Your name (as a string), mandatory</span>
 <span class="sd">        * **optional keyword arguments**: to be supplied ONLY IF you want to manually populate ``dm.ml_model_results_lookup`` after running a model outside of Python.</span>
 <span class="sd">            * *model*:  Type of model used, e.g. *&#39;logisticregression&#39;*</span>
 <span class="sd">            * *yyar*: y variable predicted, e.g. *&#39;bandwidth_in_mbps&#39;*</span>
@@ -438,6 +441,9 @@
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Results inserted&quot;</span><span class="p">)</span>
     <span class="n">insert_statement_hstore</span> <span class="o">=</span> <span class="s2">&quot;update dm.ml_model_results_lookup set classifier_params = (</span><span class="si">%s</span><span class="s2">) where model_id = &#39;&quot;</span> <span class="o">+</span> <span class="n">resultsdict</span><span class="p">[</span><span class="s1">&#39;model_id&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39;;&quot;</span>
     <span class="n">cur_ml</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">insert_statement_hstore</span><span class="p">,</span> <span class="p">[</span><span class="n">Json</span><span class="p">(</span><span class="n">hstore_dict</span><span class="p">)])</span>
+    <span class="c1">#insert name and date</span>
+    <span class="n">cur_ml</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;update dm.ml_model_results_lookup set name = &#39;&quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;&#39; where model_id = &#39;&quot;</span> <span class="o">+</span> <span class="n">resultsdict</span><span class="p">[</span><span class="s1">&#39;model_id&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39;;&quot;</span><span class="p">)</span>
+    <span class="n">cur_ml</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;update dm.ml_model_results_lookup set date = &#39;&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span><span class="o">.</span><span class="n">date</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;&#39;::DATE where model_id = &#39;&quot;</span> <span class="o">+</span> <span class="n">resultsdict</span><span class="p">[</span><span class="s1">&#39;model_id&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;&#39;;&quot;</span><span class="p">)</span>
 
     <span class="n">cur_ml</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="n">conn_ml</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>

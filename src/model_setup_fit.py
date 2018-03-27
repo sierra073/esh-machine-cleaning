@@ -140,22 +140,29 @@ class Model(object):
         """Prepares the feature set and y variable for ``sklearn`` modeling"""
         if self.yvar == 'purpose_connect_category':
             yquery = get_clean_y_query(self.yvar,'purpose_connectcat_onyx.sql')
-        else:
+        elif self.yvar != 'fiber_binary':
             yquery = get_clean_y_query(self.yvar,'get_yvar_onyx.sql')
+        else:
+            yquery = get_clean_y_query('connect_category','get_yvar_onyx.sql')
 
         # rename pristine/dirty y variable column in training data if it exists, attach clean y variable
         if self.yvar in self.training_data.columns:
             self.training_data.columns = self.training_data.columns.str.replace(self.yvar, self.yvar+'_pre')
-        self.merge_y_variable(get_table_from_db, yquery, 'string', HOST, USER, PASSWORD, DB)
-        self.y = self.training_data[self.yvar]
 
-        if self.classification_type=='classification':
+        self.merge_y_variable(get_table_from_db, yquery, 'string', HOST, USER, PASSWORD, DB)
+        if self.yvar == 'fiber_binary':
+            self.training_data["fiber_binary"] = [1 if "Fiber" in ele else 0 for ele in self.training_data["connect_category"]]
+            self.y = self.training_data["fiber_binary"]
+            self.training_data = self.training_data.drop(['frn_adjusted','connect_category','fiber_binary'],axis=1)
+        else:
+            self.y = self.training_data[self.yvar]
+            self.training_data = self.training_data.drop(['frn_adjusted',self.yvar],axis=1)
+
+        if self.classification_type=='classification' and self.yvar != 'fiber_binary':
             self.y, self.le = self.label_encode()
             unique, counts = np.unique(self.y, return_counts=True)
             print "Category counts for " + self.yvar + ":"
             print np.asarray((unique, counts)).T
-
-        self.training_data = self.training_data.drop(['frn_adjusted',self.yvar],axis=1)
 
         return self
 
@@ -172,7 +179,7 @@ class Model(object):
         self.training_setup().get_train_test_split()
 
         if self.model == 'logisticregression':
-            self.pipe = Pipeline([("imputer", Imputer()), ("estimator", RandomForestClassifier(random_state=7))])
+            self.pipe = Pipeline([("imputer", Imputer()), ("estimator", LogisticRegression(random_state=7))])
 
         if self.model == 'decisiontree':
             if self.classification_type=='classification':
@@ -211,7 +218,10 @@ class Model(object):
 
             if self.classification_type=='classification':
                 print accuracy_score(y, y_pred)
-                cm = pd.crosstab(self.le.inverse_transform(y), self.le.inverse_transform(y_pred), rownames=['True'], colnames=['Predicted'], margins=True)
+                if self.yvar != 'fiber_binary':
+                    cm = pd.crosstab(self.le.inverse_transform(y), self.le.inverse_transform(y_pred), rownames=['True'], colnames=['Predicted'], margins=True)
+                else:
+                    cm = pd.crosstab(y, y_pred, rownames=['True'], colnames=['Predicted'], margins=True)
                 print cm
             else:
                 print mean_squared_error(y, y_pred)
@@ -222,7 +232,15 @@ class Model(object):
         """
         tuples = list(zip(self.X_train.columns, self.bestmodel.feature_importances_))
         feature_importances = pd.DataFrame(tuples, columns=['Feature','Importance'])
-        print feature_importances.sort_values('Importance', ascending=False)
+        print feature_importances.sort_values('Importance', ascending=False).reset_index(drop=True)
+
+    def get_feature_importances(self):
+        """
+        gets feature importances for a given model and outputs a dataframe
+        """
+        tuples = list(zip(self.X_train.columns, self.bestmodel.feature_importances_))
+        feature_importances = pd.DataFrame(tuples, columns=['Feature','Importance'])
+        return feature_importances.sort_values('Importance', ascending=False).reset_index(drop=True)
 
     def fit(self,**kwargs):
         """Primary method: fit the model specified in ``build_pipe()`` via GridSearch. Input attributes correspond to the inputs to GridSearchCV (http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html). 
@@ -230,13 +248,15 @@ class Model(object):
             * **cv**: integer number of folds to use for cross validation (optional, default = 3)
             * **scoring**: metric to be optimized for (optional, default = 'accuracy')
             * **verbose**: integer indicating how much output you want to see from GridSearch (optional, default = 3)
-            * Example: ``fit(cv=4,verbose=6)``
+            * **n_jobs**: integer indicating how many parallel jobs to run (optional, default = 1)
+            * Example: ``fit(cv=4,verbose=6,n_jobs=6)``
         """
         cv = kwargs.get('cv',3)
         scoring = kwargs.get('scoring','accuracy')
         verbose = kwargs.get('verbose',3)
+        n_jobs = kwargs.get('n_jobs',1)
 
-        grid = GridSearchCV(self.pipe, self.params, cv=cv, scoring=scoring,verbose=verbose)
+        grid = GridSearchCV(self.pipe, self.params, cv=cv, scoring=scoring,verbose=verbose,n_jobs=n_jobs)
         grid.fit(self.X_train,self.y_train)
 
         self.grid = grid
