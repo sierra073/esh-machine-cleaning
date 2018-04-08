@@ -8,6 +8,7 @@ from sklearn.preprocessing import Imputer
 from sklearn.cross_validation import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, GradientBoostingClassifier, GradientBoostingRegressor
@@ -19,6 +20,12 @@ HOST = os.environ.get("HOST")
 USER = os.environ.get("USER")
 PASSWORD = os.environ.get("PASSWORD")
 DB = os.environ.get("DB")
+
+global ML_HOST, ML_USER, ML_PASSWORD, ML_DB
+ML_HOST = os.environ.get("ML_HOST")
+ML_USER = os.environ.get("ML_USER")
+ML_PASSWORD = os.environ.get("ML_PASSWORD")
+ML_DB = os.environ.get("ML_DB")
 
 global HOST_PRIS2017, USER_PRIS2017, PASSWORD_PRIS2017, DB_PRIS2017
 HOST_PRIS2017 = os.environ.get("HOST_PRIS2017")
@@ -75,9 +82,9 @@ def drop_column_containing(data, col):
     col_list = data.columns.tolist()
 
     for c in col_list:
-      if c.startswith(col) and c != 'postal_ak':
-        data = data.drop(c,axis=1)
-        print "Dropped: " + c
+        if c.startswith(col) and c != 'postal_ak':
+            data = data.drop(c,axis=1)
+            print "Dropped: " + c
 
     return data
 
@@ -89,8 +96,10 @@ def get_clean_y_query(y,query_file):
     f = open(query_file, 'r')
     query = f.read()
 
-    if y != 'purpose_connect_category':
-        query = query.replace('yvar',y)
+    if (y != 'purpose_connect_category' and y != 'num_lines'):
+        query = query.replace('yvar',y)    
+    if y == 'num_lines':
+        query = query.replace('sr.yvar','li.' + y)
 
     os.chdir(cwd)
     return query
@@ -128,6 +137,7 @@ class Model(object):
         """Runs the query for the y variable (given by ``get_clean_y_query(y,..)``) and adds it as a column to the training set by joining via *frn_adjusted*"""
         ydata = queryfunc(*args, **kwargs)
         self.training_data = pd.merge(self.training_data, ydata, on='frn_adjusted', how='inner')
+        self.training_data = self.training_data.drop_duplicates()
         return self
 
     def label_encode(self):
@@ -148,21 +158,30 @@ class Model(object):
         # rename pristine/dirty y variable column in training data if it exists, attach clean y variable
         if self.yvar in self.training_data.columns:
             self.training_data.columns = self.training_data.columns.str.replace(self.yvar, self.yvar+'_pre')
+        if "num_lines_pre" in self.training_data.columns.tolist():
+            self.training_data["num_lines_pre"] = [0 if ele < 0 else ele for ele in self.training_data["num_lines_pre"]]
 
         self.merge_y_variable(get_table_from_db, yquery, 'string', HOST, USER, PASSWORD, DB)
+        
+        if self.yvar == 'num_lines':
+            if self.classification_type=='regression':
+                self.training_data["num_lines"] = [0 if ele < 0 else ele for ele in self.training_data["num_lines"]]
+            else:
+                self.training_data["num_lines"] = [0 if ele > 1 else 1 for ele in self.training_data["num_lines"]]
+                
         if self.yvar == 'fiber_binary':
-            self.training_data["fiber_binary"] = [1 if "Fiber" in ele else 0 for ele in self.training_data["connect_category"]]
+            self.training_data["fiber_binary"] = [1 if ("Fiber" in ele or "ISP" in ele) else 0 for ele in self.training_data["connect_category"]]
             self.y = self.training_data["fiber_binary"]
             self.training_data = self.training_data.drop(['frn_adjusted','connect_category','fiber_binary'],axis=1)
         else:
             self.y = self.training_data[self.yvar]
             self.training_data = self.training_data.drop(['frn_adjusted',self.yvar],axis=1)
 
-        if self.classification_type=='classification' and self.yvar != 'fiber_binary':
-            self.y, self.le = self.label_encode()
+        if self.classification_type=='classification' and self.yvar != 'fiber_binary' and self.yvar != 'num_lines':
             unique, counts = np.unique(self.y, return_counts=True)
-            print "Category counts for " + self.yvar + ":"
+            print "Category counts for " + self.yvar + "(pre-encoding):"
             print np.asarray((unique, counts)).T
+            self.y, self.le = self.label_encode()
 
         return self
 
@@ -218,7 +237,7 @@ class Model(object):
 
             if self.classification_type=='classification':
                 print accuracy_score(y, y_pred)
-                if self.yvar != 'fiber_binary':
+                if self.yvar != 'fiber_binary' and self.yvar != 'num_lines':
                     cm = pd.crosstab(self.le.inverse_transform(y), self.le.inverse_transform(y_pred), rownames=['True'], colnames=['Predicted'], margins=True)
                 else:
                     cm = pd.crosstab(y, y_pred, rownames=['True'], colnames=['Predicted'], margins=True)
@@ -242,6 +261,36 @@ class Model(object):
         feature_importances = pd.DataFrame(tuples, columns=['Feature','Importance'])
         return feature_importances.sort_values('Importance', ascending=False).reset_index(drop=True)
 
+    def randomized_fit(self,**kwargs):
+        """To assist in narrowing down the hyperparameter settings. Fits the model specified in ''build_pipe()'' via RandomizedSearchCV.
+            * **cv**: integer number of folds to use for cross validation (optional, default = 3)
+            * **scoring**: metric to be optimized for (optional, default = 'accuracy')
+            * **verbose**: integer indicating how much output you want to see from GridSearch (optional, default = 3)
+            * **n_jobs**: integer indicating how many parallel jobs to run (optional, default = 1)
+            * **n_iter**: integer indicating how many samples to take of the parameter settings. Tradeoff is runtime vs quality of solution (optional, default = 100)
+            * Example: ``randomized_fit(cv=4, verbose=6, n_jobs=6)``
+        """
+        # Use the random grid to search for best hyperparameters
+        # Random search of parameters, using 3 fold cross validation, 
+        # search across 100 different combinations, and use all available cores
+        
+        cv = kwargs.get('cv',3)
+        if self.classification_type == 'classification':
+            scoring = kwargs.get('scoring','accuracy')
+        else:
+            scoring = kwargs.get('scoring','neg_mean_squared_error')
+        verbose = kwargs.get('verbose',3)
+        n_jobs = kwargs.get('n_jobs',1)
+        n_iter = kwargs.get('n_iter',100)
+        
+        random_grid = RandomizedSearchCV(self.pipe, self.params, cv=cv, scoring=scoring, verbose=verbose, n_jobs=n_jobs, n_iter=n_iter)
+        # Fit the random search model
+        random_grid.fit(self.X_train, self.y_train)
+        print "Finished fit for all iterations."
+
+        print "BEST PARAMETERS: " + str(random_grid.best_params_)
+    
+    
     def fit(self,**kwargs):
         """Primary method: fit the model specified in ``build_pipe()`` via GridSearch. Input attributes correspond to the inputs to GridSearchCV (http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html). 
         Note only the 3 listed below are applicable (rest are set implicitly):
@@ -252,7 +301,10 @@ class Model(object):
             * Example: ``fit(cv=4,verbose=6,n_jobs=6)``
         """
         cv = kwargs.get('cv',3)
-        scoring = kwargs.get('scoring','accuracy')
+        if self.classification_type == 'classification':
+            scoring = kwargs.get('scoring','accuracy')
+        else:
+            scoring = kwargs.get('scoring','neg_mean_squared_error')
         verbose = kwargs.get('verbose',3)
         n_jobs = kwargs.get('n_jobs',1)
 

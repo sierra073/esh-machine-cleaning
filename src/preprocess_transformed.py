@@ -58,6 +58,8 @@ class PreprocessTransformed(PreprocessRaw):
         return self
 
     def remove_correlated_transformed(self):
+        #order columns alphabetically
+        self.df = self.df.sort_index(ascending=False, axis=1)
         col_corr = set() # Set of all the names of deleted columns
         data_sub = self.df.loc[:, self.df.dtypes == float]
         # create a dict of the float columns and their number of nulls
@@ -90,6 +92,19 @@ class PreprocessTransformed(PreprocessRaw):
                         if self.verbose == True:
                             x = round(corr_matrix.iloc[i, j],3)
                             print("Dropped " + colname + " due to " + str(x) + " correlation with " + othercolname)
+                            
+    def applyall_2018(self):
+        """Apply all functions to a ``PreprocessTransformed`` dataset to preprocess the raw + transformed features **for 2018 data**. Only applies necessary methods for dropping columns."""
+        self.remove_row_duplicates().remove_column_nulls()
+        self.df = self.df.drop('purpose',axis=1)
+        self.rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw()   
+        #remove columns with duplicate names
+        self.df = self.df.loc[:,~self.df.columns.duplicated()]
+        self.convert_dummies_raw().convert_ints_transformed()
+        self.convert_dummies_transformed()
+        #remove columns with duplicate names again
+        self.df = self.df.loc[:,~self.df.columns.duplicated()]
+        return self
 
     def applyall_transformed(self):
         """Apply all functions to a ``PreprocessTransformed`` dataset to preprocess the raw + transformed features."""

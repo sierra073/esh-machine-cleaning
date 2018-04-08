@@ -2,11 +2,10 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support, roc
 from sklearn.feature_selection import SelectFromModel
 from model_setup_fit import *
 import numpy as np
-import pickle
+from cPickle import dump, load, HIGHEST_PROTOCOL
 import json
 from psycopg2.extensions import AsIs
 from psycopg2.extras import Json, DictCursor
-import zipfile
 import copy
 from datetime import datetime
 
@@ -74,7 +73,8 @@ class ModelOptimizer(object):
             thresholds = [t for t in thresholds if t > 0.00000000]
         else:
             thresholds = [self.threshold]
-
+        
+        accuracy_list = []
         for thresh in thresholds:
             # select features using threshold
             selection = SelectFromModel(best_model, threshold=thresh)
@@ -89,16 +89,22 @@ class ModelOptimizer(object):
             
             if self.classification_type=='classification':
                 accuracy = accuracy_score(self.y_test, y_pred)
-                print("Thresh=%.8f, n=%d, Accuracy: %.2f%%" % (thresh, select_X_train.shape[1],accuracy * 100.0))
+                accuracy_list.append(accuracy)
+                if self.yvar != 'fiber_binary':
+                    precision, recall, f_score, _ = precision_recall_fscore_support(self.y_test, y_pred, average ='weighted')
+                else:
+                    precision, recall, f_score, _ = precision_recall_fscore_support(self.y_test, y_pred, average ='binary')
+                print("Thresh=%.8f, n=%d, Accuracy: %.2f%%, Precision: %.2f%%" % (thresh, select_X_train.shape[1],accuracy * 100.0,precision * 100.0))
             else:
-                mse = mean_squared_error(self.model.y_test, y_pred)
-                print("Thresh=%.8f, n=%d, MSE: %.2f%%" % (thresh, select_X_train.shape[1],mse * 100.0))
+                mse = mean_squared_error(self.y_test, y_pred)
+                print("Thresh=%.8f, n=%d, MSE: %.2f" % (thresh, select_X_train.shape[1],mse))
 
             if thresh==self.threshold:
                 self.features = starting_X.columns[selection.get_support()]
                 self.bestmodel = selection_model
                 self.X_train = select_X_train
                 self.X_test = select_X_test
+        print("Maximum Accuracy: ", str(max(accuracy_list)))
 
     def eliminate_manual(self):
         """
@@ -121,7 +127,11 @@ class ModelOptimizer(object):
 
         if self.classification_type=='classification':
             accuracy = accuracy_score(self.y_test, y_pred)
-            print("n=%d, Accuracy: %.2f%%" % (select_X_train.shape[1],accuracy * 100.0))
+            if self.yvar != 'fiber_binary':
+                precision, recall, f_score, _ = precision_recall_fscore_support(self.y_test, y_pred, average ='weighted')
+            else:
+                precision, recall, f_score, _ = precision_recall_fscore_support(self.y_test, y_pred, average ='binary')
+            print("n=%d, Accuracy: %.2f%%, Precision: %.2f%%" % (select_X_train.shape[1],accuracy * 100.0,precision * 100.0))
         else:
             mse = mean_squared_error(self.y_test, y_pred)
             print("n=%d, MSE: %.2f%%" % (select_X_train.shape[1],mse * 100.0))
@@ -148,8 +158,8 @@ def get_columns_containing(data, col):
     col_list = data.columns.tolist()
     cols = []
     for c in col_list:
-      if c.startswith(col):
-        cols.append(c)
+        if c.startswith(col):
+            cols.append(c)
 
     return cols
 
@@ -199,7 +209,10 @@ def build_scoresdict(model_obj,**kwargs):
 
             if model_obj.classification_type == 'classification':
                 accuracy = accuracy_score(y, y_pred)
-                precision, recall, f_score, _ = precision_recall_fscore_support(y, y_pred, average ='weighted')
+                if model_obj.yvar != 'fiber_binary':
+                    precision, recall, f_score, _ = precision_recall_fscore_support(y, y_pred, average ='weighted')
+                else:
+                    precision, recall, f_score, _ = precision_recall_fscore_support(y, y_pred, average ='binary')
             else:
                 accuracy = precision = recall = None
 
@@ -263,16 +276,11 @@ def output_results(model_obj,features,name,**kwargs):
 
     #write out features
     with open(featurepath + 'features_' + resultsdict['model_id'] + '.pkl','w') as f:
-        pickle.dump(features.tolist(),f)
+        dump(features.tolist(),f)
     #write out model
     model_pickle = modelpath + 'model_' + resultsdict['model_id'] + '.pkl'
-    with open(model_pickle,'w') as f:
-        pickle.dump(model_obj.bestmodel,f)
-
-    zip = zipfile.ZipFile(model_pickle + '.zip','w')
-    zip.write(model_pickle, compress_type=zipfile.ZIP_DEFLATED)
-    zip.close()
-    os.remove(model_pickle)
+    with open(model_pickle,'wb') as f:
+        dump(model_obj.bestmodel, f, HIGHEST_PROTOCOL)
 
     #insert into database
     columns = resultsdict.keys()
@@ -293,6 +301,8 @@ def output_results(model_obj,features,name,**kwargs):
     #insert name and date
     cur_ml.execute("update dm.ml_model_results_lookup set name = '" + name + "' where model_id = '" + resultsdict['model_id'] + "';")
     cur_ml.execute("update dm.ml_model_results_lookup set date = '" + str(pd.to_datetime(datetime.now()).date()) + "'::DATE where model_id = '" + resultsdict['model_id'] + "';")
+    if "comment" in kwargs:
+        cur_ml.execute("update dm.ml_model_results_lookup set comment = '" + kwargs['comment'] + "' where model_id = '" + resultsdict['model_id'] + "';")
 
     cur_ml.close()
     conn_ml.commit()

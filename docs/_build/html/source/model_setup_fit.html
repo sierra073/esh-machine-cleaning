@@ -250,6 +250,18 @@ If regression model, just prints the MSE</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="model_setup_fit.Model.randomized_fit">
+<code class="descname">randomized_fit</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.randomized_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.randomized_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>To assist in narrowing down the hyperparameter settings. Fits the model specified in ‘’build_pipe()’’ via RandomizedSearchCV.
+* <strong>cv</strong>: integer number of folds to use for cross validation (optional, default = 3)
+* <strong>scoring</strong>: metric to be optimized for (optional, default = ‘accuracy’)
+* <strong>verbose</strong>: integer indicating how much output you want to see from GridSearch (optional, default = 3)
+* <strong>n_jobs</strong>: integer indicating how many parallel jobs to run (optional, default = 1)
+* <strong>n_iter</strong>: integer indicating how many samples to take of the parameter settings. Tradeoff is runtime vs quality of solution (optional, default = 100)
+* Example: <code class="docutils literal notranslate"><span class="pre">randomized_fit(cv=4,</span> <span class="pre">verbose=6,</span> <span class="pre">n_jobs=6)</span></code></p>
+</dd></dl>
+
+<dl class="method">
 <dt id="model_setup_fit.Model.fit">
 <code class="descname">fit</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/model_setup_fit.html#Model.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#model_setup_fit.Model.fit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Primary method: fit the model specified in <code class="docutils literal notranslate"><span class="pre">build_pipe()</span></code> via GridSearch. Input attributes correspond to the inputs to GridSearchCV (<a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html">http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html</a>).

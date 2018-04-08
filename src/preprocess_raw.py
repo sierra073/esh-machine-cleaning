@@ -241,6 +241,8 @@ class PreprocessRaw(object):
         return self
 
     def remove_correlated_raw(self):
+        #order columns alphabetically
+        self.df = self.df.sort_index(ascending=False, axis=1)
         col_corr = set() # Set of all the names of deleted columns
         data_sub = self.df.loc[:, self.df.dtypes == float]
         #create a dict of the float columns and their number of nulls
