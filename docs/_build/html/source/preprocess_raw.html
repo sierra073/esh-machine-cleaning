@@ -169,7 +169,7 @@ Input Attributes:</p>
 </div></blockquote>
 <dl class="attribute">
 <dt id="preprocess_raw.PreprocessRaw.drop_cols">
-<code class="descname">drop_cols</code><em class="property"> = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number', 'establishing_fcc_form470', 'user_entered_establishing_fcc_form470', 'line_item', 'award_date', 'expiration_date', 'contract_expiry_date', 'service_start_date', 'model', 'contract_number', 'restriction_citation', 'other_manufacture', 'download_speed', 'download_speed_units', 'upload_speed', 'upload_speed_units', 'burstable_speed', 'burstable_speed_units', 'purpose', 'source_of_matching_funds', 'doing_business_as', 'reporting_name', 'billed_entity_name', 'contact_email', 'funding_request_nickname', 'narrative', 'type_of_product']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.drop_cols" title="Permalink to this definition">¶</a></dt>
+<code class="descname">drop_cols</code><em class="property"> = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number', 'establishing_fcc_form470', 'user_entered_establishing_fcc_form470', 'line_item', 'award_date', 'expiration_date', 'contract_expiration_date', 'service_start_date', 'model', 'contract_number', 'restriction_citation', 'other_manufacture', 'download_speed', 'download_speed_units', 'upload_speed', 'upload_speed_units', 'burstable_speed', 'burstable_speed_units', 'purpose', 'billed_entity_name', 'type_of_product', 'updated_at', 'created_at', 'extended_contract_expiration_date', 'window_status']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.drop_cols" title="Permalink to this definition">¶</a></dt>
 <dd><p>declare the columns that are yes/no</p>
 </dd></dl>
 
@@ -181,7 +181,7 @@ Input Attributes:</p>
 
 <dl class="attribute">
 <dt id="preprocess_raw.PreprocessRaw.cat_cols">
-<code class="descname">cat_cols</code><em class="property"> = ['pricing_confidentiality', 'based_on_state_master_contract', 'lease_or_non_purchase_agreement', 'based_on_multiple_award_schedule', 'was_fcc_form470_posted', 'connection_supports_school_library_or_nif', 'connected_directly_to_school_library_or_nif', 'basic_firewall_protection', 'includes_voluntary_extensions', 'pricing_confidentiality_type', 'fiber_type', 'connection_used_by', 'fiber_sub_type', 'purpose', 'unit', 'function', 'postal_cd', 'frn_previous_year_exists']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.cat_cols" title="Permalink to this definition">¶</a></dt>
+<code class="descname">cat_cols</code><em class="property"> = ['pricing_confidentiality_type', 'fiber_type', 'connection_used_by', 'fiber_sub_type', 'purpose', 'unit', 'function', 'postal_cd', 'billed_entity_type', 'source_of_matching_funds', 'contract_type']</em><a class="headerlink" href="#preprocess_raw.PreprocessRaw.cat_cols" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -291,6 +291,12 @@ Since there are more float variables than categorical/string variables, it takes
 <dt id="preprocess_raw.PreprocessRaw.applyall_raw">
 <code class="descname">applyall_raw</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.applyall_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.applyall_raw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply all functions to a <code class="docutils literal notranslate"><span class="pre">PreprocessRaw</span></code> dataset to preprocess the raw features.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="preprocess_raw.PreprocessRaw.applyall_predict">
+<code class="descname">applyall_predict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/preprocess_raw.html#PreprocessRaw.applyall_predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#preprocess_raw.PreprocessRaw.applyall_predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply most essential functions to a <code class="docutils literal notranslate"><span class="pre">PreprocessRaw</span></code> dataset to preprocess the raw features (for a dataset to predict on).</p>
 </dd></dl>
 
 </dd></dl>

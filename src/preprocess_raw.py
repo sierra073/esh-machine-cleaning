@@ -14,27 +14,24 @@ class PreprocessRaw(object):
     """
 
     """declare the columns to be dropped that could never be useful"""
-    ## dropping purpose because it's redefined in the SQL code
-    drop_cols = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben', 'account_number', 'service_provider_number','establishing_fcc_form470', 'user_entered_establishing_fcc_form470','line_item', 
-    'award_date', 'expiration_date', 'contract_expiry_date', 'service_start_date','model','contract_number', 'restriction_citation', 'other_manufacture', 
-    'download_speed','download_speed_units','upload_speed','upload_speed_units','burstable_speed','burstable_speed_units','purpose', 'source_of_matching_funds',
-    'doing_business_as','reporting_name','billed_entity_name','contact_email','funding_request_nickname','narrative','type_of_product']
+    ## dropping purpose because it's redefined in the SQL code -- needs revisit. 'contact_email','funding_request_nickname','narrative' kept
+    drop_cols = ['id', 'frn', 'frn_number_from_the_previous_year', 'application_number', 'ben','account_number', 'service_provider_number','establishing_fcc_form470', 'user_entered_establishing_fcc_form470','line_item',
+    'award_date', 'expiration_date', 'contract_expiration_date', 'service_start_date','model','contract_number', 'restriction_citation', 'other_manufacture',
+    'download_speed','download_speed_units','upload_speed','upload_speed_units','burstable_speed','burstable_speed_units','purpose', 'billed_entity_name','type_of_product', 'updated_at', 'created_at','extended_contract_expiration_date', 'window_status']
 
     """declare the columns that are yes/no"""
     yn_cols = ['connection_supports_school_library_or_nif', 'includes_voluntary_extensions', 'basic_firewall_protection', 'based_on_state_master_contract',
     'based_on_multiple_award_schedule', 'pricing_confidentiality', 'lease_or_non_purchase_agreement', 'connected_directly_to_school_library_or_nif','was_fcc_form470_posted','frn_previous_year_exists']
 
     """declare the columns that don't need the float conversion"""
-    cat_cols = ['pricing_confidentiality', 'based_on_state_master_contract', 'lease_or_non_purchase_agreement', 'based_on_multiple_award_schedule',  
-    'was_fcc_form470_posted', 'connection_supports_school_library_or_nif' ,'connected_directly_to_school_library_or_nif','basic_firewall_protection','includes_voluntary_extensions','pricing_confidentiality_type',
-    'fiber_type','connection_used_by','fiber_sub_type','purpose','unit','function','postal_cd','frn_previous_year_exists']
+    cat_cols = ['pricing_confidentiality_type','fiber_type','connection_used_by','fiber_sub_type','purpose','unit','function','postal_cd', 'billed_entity_type', 'source_of_matching_funds', 'contract_type']
 
     def __init__(self, df, **kwargs):
         self.df = df
         self.verbose = kwargs.get('verbose',False)
-        self.max_categories = kwargs.get('max_categories',12) 
-        self.null_threshold = kwargs.get('null_threshold',.74) 
-        self.corr_threshold = kwargs.get('corr_threshold',.9) 
+        self.max_categories = kwargs.get('max_categories',12)
+        self.null_threshold = kwargs.get('null_threshold',.74)
+        self.corr_threshold = kwargs.get('corr_threshold',.9)
 
     def getdata(self):
         return self.df
@@ -76,12 +73,12 @@ class PreprocessRaw(object):
 
             for i in range(lvs):
                 for j in range(i+1,lvs):
-                    if vs[i] == vs[j]: 
+                    if vs[i] == vs[j]:
                         print str(ks[i]) + " duplicate with " + str(ks[j]) + ", dropping " + str(ks[i])
                         dups.append(ks[i])
                         break
 
-        return dups  
+        return dups
 
     def remove_column_duplicates(self):
         """Removes the columns that have duplicates (as determined by ``duplicate_columns()``).
@@ -96,15 +93,14 @@ class PreprocessRaw(object):
 
 
     def summary(self):
-        """Takes a DataFrame and creates a summary. Does different things if object or numeric features. 
+        """Takes a DataFrame and creates a summary. Does different things if object or numeric features.
         Reports the data type, some stats, the number of unique values, and null count/percent for each column.
         """
         summary_list = []
         if self.verbose==True:
             print 'SHAPE', self.df.shape
-        
-        for i in self.df.columns:
-            vals = self.df[i]    
+        for col_name in self.df.columns:
+            vals = self.df[col_name]
             if vals.dtype == 'O':
                 try:
                     most_frequent = Counter(vals[vals != None].tolist()).most_common(1)
@@ -112,21 +108,21 @@ class PreprocessRaw(object):
                 except TypeError:
                     most_frequent = 'NA'
                     uniq = 'NA'
-                summary_list.append([i,
-                                     vals.dtype, 
-                                     'NA', 
-                                     'NA', 
+                summary_list.append([col_name,
+                                     vals.dtype,
+                                     'NA',
+                                     'NA',
                                      most_frequent,
-                                     uniq, 
+                                     uniq,
                                      sum(pd.isnull(vals)),
                                      sum(pd.isnull(vals))/(1.0*len(self.df))])
             else:
-                summary_list.append([i,
-                                     vals.dtype, 
-                                     vals.min(), 
-                                     vals.max(), 
+                summary_list.append([col_name,
+                                     vals.dtype,
+                                     vals.min(),
+                                     vals.max(),
                                      vals.mean(),
-                                     vals.nunique(), 
+                                     vals.nunique(),
                                      sum(pd.isnull(vals)),
                                      sum(pd.isnull(vals))/(1.0*len(self.df))])
         return pd.DataFrame(summary_list, columns=['col','datatype','min','max','mean_or_most_common','num_uniq','null_count','null_pct'])
@@ -159,10 +155,10 @@ class PreprocessRaw(object):
         return self
 
     def convert_floats(self,cat_cols):
-        """General function: convert columns that should be decimal numbers (if not already) to floats. 
+        """General function: convert columns that should be decimal numbers (if not already) to floats.
         Since there are more float variables than categorical/string variables, it takes in a list *cat_cols* of those to exclude.
         """
-        for col in self.df.columns: 
+        for col in self.df.columns:
             if col not in cat_cols:
                 try:
                     self.df[col] = self.df[col].astype(float)
@@ -184,14 +180,18 @@ class PreprocessRaw(object):
         var_corrected=[]
         for _, row in self.df.iterrows():
             if row[col]=='Yes':
-                var_corrected.append(True)
+                var_corrected.append(1)
             elif row[col]=='No':
-                var_corrected.append(False)
+                var_corrected.append(0)
+            elif row[col]==1:
+                var_corrected.append(1)
+            elif row[col]==0:
+                var_corrected.append(0)
             else:
                 var_corrected.append(None)
         self.df[col] = var_corrected
         if self.verbose==True:
-            print(col + " converted to boolean")
+            print(col + " converted to float")
         return self
 
     def convert_yn_raw(self):
@@ -271,4 +271,9 @@ class PreprocessRaw(object):
     def applyall_raw(self):
         """Apply all functions to a ``PreprocessRaw`` dataset to preprocess the raw features."""
         self.remove_row_duplicates().remove_column_nulls().remove_column_duplicates().remove_no_var().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw().remove_mostly_nulls().remove_correlated_raw()
+        return self
+    
+    def applyall_predict(self):
+        """Apply most essential functions to a ``PreprocessRaw`` dataset to preprocess the raw features (for a dataset to predict on)."""
+        self.remove_row_duplicates().remove_column_nulls().remove_column_duplicates().remove_drops_raw().rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw().convert_dummies_raw()
         return self

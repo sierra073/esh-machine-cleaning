@@ -1,7 +1,7 @@
 from preprocess_raw import *
 
 class PreprocessTransformed(PreprocessRaw):
-    """A raw dataset (coming from frns and frn_line_items tables), *as well as additional fields from the pristine line items table* that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module. 
+    """A raw dataset (coming from frns and frn_line_items tables), *as well as additional fields from the pristine line items table* that can be cleaned and prepped for Machine Cleaning modeling by applying the helper functions in this module.
     Inherits the ``PreprocessRaw`` class.
     """
 
@@ -43,7 +43,7 @@ class PreprocessTransformed(PreprocessRaw):
     def remove_drops_transformed(self):
         """Removes the raw cost, charges and service provider columns (and keeps the transformed pristine ones), as well as some columns in Jamie's table."""
         transformed_cost_cols = ['one_time_elig_cost','rec_cost','rec_elig_cost','total_cost']
-        final_drop_cols = ['funding_year','applicant_id']
+        final_drop_cols = ['funding_year','applicant_id','line_item_id']
         for col in self.df.columns.values:
             if (col.find("_cost") != -1 and col not in transformed_cost_cols) or (col.find("_charges") != -1 or col=='service_provider_name') or col in final_drop_cols:
                 self.df = self.df.drop(col, axis=1)
@@ -53,7 +53,7 @@ class PreprocessTransformed(PreprocessRaw):
 
     def convert_dummies_transformed(self):
         """Convert the additional transformed categorical variables to dummies."""
-        transformed_cat_cols = ['esh_applicant_type_1','esh_applicant_type_2','usac_applicant_type','connect_category','connect_type','purposetransformed']
+        transformed_cat_cols = ['esh_applicant_type_1','esh_applicant_type_2','usac_applicant_type','connect_category','connect_type','purposetransformed', 'esh_applicant_type', 'functiontransformed', 'contract_type']
         self.convert_dummies([c for c in transformed_cat_cols if c in self.df.columns.values])
         return self
 
@@ -92,12 +92,12 @@ class PreprocessTransformed(PreprocessRaw):
                         if self.verbose == True:
                             x = round(corr_matrix.iloc[i, j],3)
                             print("Dropped " + colname + " due to " + str(x) + " correlation with " + othercolname)
-                            
-    def applyall_2018(self):
-        """Apply all functions to a ``PreprocessTransformed`` dataset to preprocess the raw + transformed features **for 2018 data**. Only applies necessary methods for dropping columns."""
+
+    def applyall_predict(self):
+        """Apply all functions to a ``PreprocessTransformed`` dataset to preprocess the raw + transformed features **for the latest data to predict on**. Only applies necessary methods for dropping columns."""
         self.remove_row_duplicates().remove_column_nulls()
         self.df = self.df.drop('purpose',axis=1)
-        self.rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw()   
+        self.rename_col('purpose_adj','purpose').convert_floats_raw().convert_yn_raw()
         #remove columns with duplicate names
         self.df = self.df.loc[:,~self.df.columns.duplicated()]
         self.convert_dummies_raw().convert_ints_transformed()
