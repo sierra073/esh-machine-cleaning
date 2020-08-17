@@ -1,3 +1,5 @@
 *.pyc
 .ipynb_checkpoints
 *.pkl
+.bash_profile_mc
+*mc_venv
