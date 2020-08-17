@@ -10,32 +10,32 @@ These modules were built to facilitate the model building [workflow](https://edu
 #### 1. _Environment setup_
 | Directory       | File          | Description  |
 | ------------- |:-------------:| :-----|
-| .      | [setup.sh](setup.sh)     |   Before running this script, go in and edit it for your system. The GITHUB and _FORKED variables need to be edited for your individual system. Then run `. ./setup.sh && source mc_venv/bin/activate && . /.bash_profile_mc` in your command line to set up and activate the environment.  |
+| .             | [setup.sh](setup.sh)     |   Before running this script, go in and edit it for your system. The GITHUB and _FORKED variables need to be edited for your individual system. Then run `. ./setup.sh && source mc_venv/bin/activate && . /.bash_profile_mc` in your command line to set up and activate the environment.  |
 
 #### 2. _Loading the datasets_
 
 | Directory       | File          | Description  |
 | ------------- |:-------------:| :-----|
-| src/sql       | [get_data_2019_train.sql](src/modeling/sql/get_data_2019_train.sql)     |   This data is used to train the model. Gets the raw USAC FRN & line item data for 2019.  |
-| src/sql       | [get_yvar_dar_prod.sql](src/modeling/sql/get_yvar_dar_prod.sql)     |   Labels to train supervised machine learning model to predict purpose or connect category. |
-| src/sql       | [get_data_future_predict.sql](src/modeling/sql/get_data_future_predict.sql)     |   Blank file, but this will look similar to `get_data_2019_train.sql` but will pull in the future year's data to predict on. |
+| src/modeling/sql   | [get_data_2019_train.sql](src/modeling/sql/get_data_2019_train.sql)     |   This data is used to train the model. Gets the raw USAC FRN & line item data for 2019.  |
+| src/modeling/sql       | [get_yvar_dar_prod.sql](src/modeling/sql/get_yvar_dar_prod.sql)     |   Labels to train supervised machine learning model to predict purpose or connect category. |
+| src/modeling/sql       | [get_data_future_predict.sql](src/modeling/sql/get_data_future_predict.sql)     |   Blank file, but this will look similar to `get_data_2019_train.sql` but will pull in the future year's data to predict on. |
 
 #### 3. _Preprocessing the dataset_
 
 | Directory       | File          | Description  |
 | ------------- |:-------------:| :-----|
-| src      | [preprocess_raw.py](src/modeling/preprocess_raw.py) |  Includes all data preprocessing functions such as removing nulls, duplicates and data conversions to numeric or dummy variables. Also includes function to remove correlated columns. More detail on [ReadtheDocs](https://esh-machine-cleaning-preprocessing.readthedocs.io/en/latest/source/preprocess_raw.html#module-preprocess_raw)|
+| src/modeling      | [preprocess_raw.py](src/modeling/preprocess_raw.py) |  Includes all data preprocessing functions such as removing nulls, duplicates and data conversions to numeric or dummy variables. Also includes function to remove correlated columns. More detail on [ReadtheDocs](https://esh-machine-cleaning-preprocessing.readthedocs.io/en/latest/source/preprocess_raw.html#module-preprocess_raw)|
 
 #### 4. _Training models_
 
 | Directory       | File          | Description  |
 | ------------- |:-------------:| :-----|
-| src      | [training_demo.ipynb](src/examples/training_demo.ipynb) | Notebook for training and iterating on models. There is a basic demo of the end-to-end process with a Random Forest model. |
-| src      | [model_setup_fit.py](src/modeling/model_setup_fit.py) | On [ReadtheDocs](https://esh-machine-cleaning-preprocessing.readthedocs.io/en/latest/source/model_setup_fit.html#module-model_setup_fit) |
-| src      | [model_optimization.py](src/modeling/model_optimization.py) | On [ReadtheDocs](https://esh-machine-cleaning-preprocessing.readthedocs.io/en/latest/source/model_optimization.html#module-model_optimization) |
+| src/modeling      | [training_demo.ipynb](src/examples/training_demo.ipynb) | Notebook for training and iterating on models. There is a basic demo of the end-to-end process with a Random Forest model. |
+| src/modeling      | [model_setup_fit.py](src/modeling/model_setup_fit.py) | On [ReadtheDocs](https://esh-machine-cleaning-preprocessing.readthedocs.io/en/latest/source/model_setup_fit.html#module-model_setup_fit) |
+| src/modeling      | [model_optimization.py](src/modeling/model_optimization.py) | On [ReadtheDocs](https://esh-machine-cleaning-preprocessing.readthedocs.io/en/latest/source/model_optimization.html#module-model_optimization) |
 
 #### 5. _Making Predictions on Purpose and Connect Category using the trained models_
 
 | Directory       | File          | Description  |
 | ------------- |:-------------:| :-----|
-| src      | [apply_models.ipynb](src/examples/apply_models.ipynb) |  Run this notebook to call the `load_and_predict()` function. This function loads in a model and features and applies it to new data to make predictions on purpose and connect category. <br> <br>**Output:** <br> `/data/ml_mass_update.csv` <br> <br>_Note:_ Must input the data frame to predict on (after the minimal preprocessing) and a model id (string) |
+| src/examples      | [apply_models.ipynb](src/examples/apply_models.ipynb) |  Run this notebook to call the `load_and_predict()` function. This function loads in a model and features and applies it to new data to make predictions on purpose and connect category. <br> <br>**Output:** <br> `/data/ml_mass_update.csv` <br> <br>_Note:_ Must input the data frame to predict on (after the minimal preprocessing) and a model id (string) |
