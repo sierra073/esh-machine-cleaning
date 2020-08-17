@@ -10,7 +10,7 @@ These modules were built to facilitate the model building [workflow](https://edu
 #### 1. _Environment setup_
 | Directory       | File          | Description  |
 | ------------- |:-------------:| :-----|
-| .             | [setup.sh](setup.sh)     |   Before running this script, go in and edit it for your system. The GITHUB and _FORKED variables need to be edited for your individual system. Then run `. ./setup.sh && source mc_venv/bin/activate && . /.bash_profile_mc` in your command line to set up and activate the environment.  |
+| /             | [setup.sh](setup.sh)     |   Before running this script, go in and edit it for your system. The GITHUB and _FORKED variables need to be edited for your individual system. Then run `. ./setup.sh && source mc_venv/bin/activate && . /.bash_profile_mc` in your command line to set up and activate the environment.  |
 
 #### 2. _Loading the datasets_
 
