@@ -1,0 +1,1 @@
+{"imputer_strategy": {"none": 4, "most_frequent": 3, "median": 2, "mean": 1}, "model": {"randomforest": 1, "logisticregression": 4, "decisiontree": 2, "gradientboosting": 3}, "yvar": {"num_lines_narrative": 7, "num_lines": 6, "bandwidth": 8, "purpose_connect_category": 4, "fiber_binary": 3, "purpose": 1, "num_lines_bucket": 5, "connect_category": 2}}

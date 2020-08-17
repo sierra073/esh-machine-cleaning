@@ -1,0 +1,23 @@
+﻿Connect Category ,Original Connect Type,Connect Type,Count,Update CT
+Dark Fiber,Dark Fiber IRU (No Special Construction),Dark Fiber (No Special Construction),67,0
+Other Copper,ATM,Ethernet,3,1
+Lit Fiber,Digital Subscriber Line (DSL),Ethernet,178,1
+Lit Fiber,DS-4,Ethernet,49,1
+Other Copper,Fractional T-1,Ethernet,24,0
+Other Copper,Frame Relay,Ethernet,2,1
+Other Copper,ISDN-BRI,Ethernet,9,0
+Lit Fiber,MPLS,Ethernet,915,1
+Lit Fiber,OC-1,Ethernet,218,0
+Lit Fiber,OC-12,Ethernet,92,0
+Lit Fiber,OC-192,Ethernet,82,0
+Lit Fiber,OC-24,Ethernet,152,0
+Lit Fiber,OC-256,Ethernet,5,0
+Lit Fiber,OC-3,Ethernet,193,0
+Lit Fiber,OC-48,Ethernet,39,0
+Lit Fiber,OC-768,Ethernet,2,0
+Lit Fiber,OC-N (TDM Fiber),Ethernet,1604,0
+Lit Fiber,Switched Multimegabit Data Service,Ethernet,1161,1
+Other Copper,Switched Multimegabit Data Service,Ethernet,10,1
+Other Copper,T-3,Ethernet,100,0
+Satellite/LTE,Data plan for portable device,Satellite Service,38,1
+Satellite/LTE,Wireless data service,Satellite Service,83,1
