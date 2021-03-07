@@ -1,6 +1,6 @@
 # Machine Cleaning at EducationSuperHighway (ESH)
 
-The Machine Cleaning project develops classification models to predict _corrected USAC Form 471 line item field values_ for the most commonly edited line item fields by ESH Business Analysts. Past analyses were done to determine which fields were the the best "low-hanging fruit" for machine learning; i.e., where machine learning could have the biggest impact in terms of time saved for manual cleaning. These fields are **`Purpose`** and **`Connect Category`**.
+The Machine Cleaning project develops classification models to predict _corrected USAC Form 471 line item field values_ for the most commonly edited line item fields by ESH Business Analysts. Past analyses were done to determine which fields were the the best "low-hanging fruit" for machine learning; these fields are **`Purpose`** and **`Connect Category`**.
 
 ## Workflow/Code Architecture Illustration:
 These modules were built to facilitate the model building [workflow](https://educationsuperhighway.atlassian.net/wiki/spaces/SA/pages/393609532/Modeling+Process) for this specific ESH application, and to make it easier to use for analysts with a limited machine learning background. The preprocessing module is specific to ESH, and the modeling modules are built as wrappers around `sklearn` modules. These can and should be extended, with the first priority being to rewrite them to work in Python 3+!
